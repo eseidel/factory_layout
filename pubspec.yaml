@@ -1,15 +1,16 @@
 name: factory_layout
 description: A sample command-line application with basic argument parsing.
 version: 0.0.1
-# repository: https://github.com/my_org/my_repo
 
 environment:
   sdk: ^3.3.3
 
-# Add regular dependencies here.
 dependencies:
-  args: ^2.4.2
+  collection: ^1.18.0
+  mason_logger: ^0.2.15
+  meta: ^1.14.0
 
 dev_dependencies:
   lints: ^3.0.0
-  test: ^1.24.0
+  test: ^1.24.0  
+  very_good_analysis: ^5.1.0
