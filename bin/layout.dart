@@ -275,16 +275,16 @@ class Optimizer {
 
     for (var i = 0; i < rounds; i++) {
       // Mutations can cause individuals to become invalid.
+      // Also the initial population is empty.
       pop = _removeInvalidAndRepopulate(pop);
       final sorted = pop.toList()..sortBy<num>(score);
       final survivors = sorted.sublist(0, survivorCount);
       final breeders = sorted.sublist(0, breederCount);
       final children = _crossover(breeders, populationSize - survivorCount);
-      pop = [
-        ...survivors,
-        ...children,
-        // And apply mutations.
-      ].map((c) => _mutate(c, mutationRate)).toList();
+      // Make the next generation and apply mutations.
+      pop = [...survivors, ...children]
+          .map((c) => _mutate(c, mutationRate))
+          .toList();
     }
     return pop;
   }
