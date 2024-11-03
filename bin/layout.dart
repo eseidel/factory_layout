@@ -203,11 +203,13 @@ int score(SpaceGrid grid) => grid.countMatching(Space.path);
 
 // This was derived from another project of mine and can be optimized.
 class Optimizer {
-  Optimizer(this.original, this.random);
+  Optimizer(this.original, {Random? random, this.populationCount = 100})
+      : random = random ?? Random();
 
   final Random random;
+  final SpaceGrid original;
 
-  final populationSize = 100;
+  final int populationCount;
   // Only this percent of the population will get to breed.
   final breedingRate = 0.1;
 
@@ -217,7 +219,9 @@ class Optimizer {
 
   /// Chance that a given gene will mutate.
   final mutationRate = 0.005;
-  final SpaceGrid original;
+
+  int get breederCount => (populationCount * breedingRate).ceil();
+  int get survivorCount => (breederCount * survivalRate).ceil();
 
   List<SpaceGrid> _seedPopulation(int count) {
     final population = <SpaceGrid>[];
@@ -261,7 +265,7 @@ class Optimizer {
 
   List<SpaceGrid> _removeInvalidAndRepopulate(List<SpaceGrid> population) {
     final valid = population.where(isConnected).toList();
-    final missing = populationSize - valid.length;
+    final missing = populationCount - valid.length;
     return [
       ...valid,
       ..._seedPopulation(missing),
@@ -269,8 +273,6 @@ class Optimizer {
   }
 
   List<SpaceGrid> run(int rounds) {
-    final breederCount = (populationSize * breedingRate).ceil();
-    final survivorCount = (breederCount * survivalRate).ceil();
     var pop = <SpaceGrid>[];
 
     for (var i = 0; i < rounds; i++) {
@@ -280,7 +282,7 @@ class Optimizer {
       final sorted = pop.toList()..sortBy<num>(score);
       final survivors = sorted.sublist(0, survivorCount);
       final breeders = sorted.sublist(0, breederCount);
-      final children = _crossover(breeders, populationSize - survivorCount);
+      final children = _crossover(breeders, populationCount - survivorCount);
       // Make the next generation and apply mutations.
       pop = [...survivors, ...children]
           .map((c) => _mutate(c, mutationRate))
@@ -310,8 +312,7 @@ void main(List<String> args) {
     '  T  ',
   ]);
 
-  final random = Random();
-  final solution = Optimizer(grid, random).run(100).first;
+  final solution = Optimizer(grid).run(100).first;
   print(solution);
   print(isConnected(solution));
 }
