@@ -314,5 +314,4 @@ void main(List<String> args) {
 
   final solution = Optimizer(grid).run(100).first;
   print(solution);
-  print(isConnected(solution));
 }
