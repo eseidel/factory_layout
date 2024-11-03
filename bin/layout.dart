@@ -1,3 +1,5 @@
+import 'dart:math';
+
 enum Space {
   empty(' '),
   source('S'),
@@ -125,6 +127,10 @@ class SpaceGrid extends Grid<Space> {
 
   Iterable<Position> get sources => positionsMatching(Space.source);
   Iterable<Position> get sinks => positionsMatching(Space.sink);
+
+  SpaceGrid copy() {
+    return SpaceGrid(List<List<Space>>.from(spaces.map(List<Space>.from)));
+  }
 }
 
 // Need some way to score a grid.
@@ -139,15 +145,16 @@ bool isConnected(SpaceGrid grid) {
     final stack = [sink];
     while (stack.isNotEmpty) {
       final position = stack.removeLast();
-      if (!grid.inBounds(position)) {
-        continue;
-      }
       if (colors[position] != 0) {
         continue;
       }
       colors[position] = color;
+      if (grid[position] == Space.source) {
+        break;
+      }
+
       for (final neighbor in grid.neighbors(position)) {
-        if (grid[neighbor] == Space.path) {
+        if (grid[neighbor] == Space.path || grid[neighbor] == Space.source) {
           stack.add(neighbor);
         }
       }
@@ -155,6 +162,33 @@ bool isConnected(SpaceGrid grid) {
     color++;
   }
   return grid.sources.every((source) => colors[source] != 0);
+}
+
+class Planner {
+  Planner(this.original, this.random);
+
+  final SpaceGrid original;
+  final Random random;
+
+  void fillOne(SpaceGrid grid, Random random) {
+    // If we don't have empty space left, throw.
+    final emptySpaces = grid.positionsMatching(Space.empty);
+    if (emptySpaces.isEmpty) {
+      throw ArgumentError('No empty spaces left');
+    }
+    // Otherwise convert an empty space into a path.
+    final position = emptySpaces.elementAt(random.nextInt(emptySpaces.length));
+    grid[position] = Space.path;
+  }
+
+  SpaceGrid plan() {
+    // Start with the original grid.
+    final solution = original.copy();
+    while (!isConnected(solution)) {
+      fillOne(solution, random);
+    }
+    return solution;
+  }
 }
 
 void main(List<String> args) {
@@ -180,6 +214,9 @@ void main(List<String> args) {
     '  T  ',
   ]);
 
-  print(grid);
-  print(isConnected(grid));
+  final planner = Planner(grid, Random());
+  final solution = planner.plan();
+
+  print(solution);
+  print(isConnected(solution));
 }
