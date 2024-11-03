@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
+
 enum Space {
   empty(' '),
   source('S'),
@@ -46,6 +48,14 @@ class Grid<T> {
 
   int get width => spaces[0].length;
   int get height => spaces.length;
+
+  Iterable<Position> get allPositions sync* {
+    for (var y = 0; y < spaces.length; y++) {
+      for (var x = 0; x < spaces[y].length; x++) {
+        yield Position(x, y);
+      }
+    }
+  }
 
   bool inBounds(Position position) {
     return position.x >= 0 &&
@@ -121,9 +131,7 @@ class SpaceGrid extends Grid<Space> {
   }
 
   @override
-  String toString() {
-    return toStrings().join('\n');
-  }
+  String toString() => toStrings().join('\n');
 
   Iterable<Position> get sources => positionsMatching(Space.source);
   Iterable<Position> get sinks => positionsMatching(Space.sink);
@@ -132,10 +140,6 @@ class SpaceGrid extends Grid<Space> {
     return SpaceGrid(List<List<Space>>.from(spaces.map(List<Space>.from)));
   }
 }
-
-// Need some way to score a grid.
-// Does it connect the needed sources and sinks?
-// How many segments does it use?
 
 bool isConnected(SpaceGrid grid) {
   // Walk the sinks and see if they can reach the sources.
@@ -191,15 +195,107 @@ class Planner {
   }
 }
 
+extension<T> on List<T> {
+  T pickOne(Random random) => this[random.nextInt(length)];
+}
+
+int score(SpaceGrid grid) => grid.countMatching(Space.path);
+
+// This was derived from another project of mine and can be optimized.
+class Optimizer {
+  Optimizer(this.original, this.random);
+
+  final Random random;
+
+  final populationSize = 100;
+  // Only this percent of the population will get to breed.
+  final breedingRate = 0.1;
+
+  // This percent of the breeding population will survive to the next round.
+  // They will still be mutated.
+  final survivalRate = 0.2;
+
+  /// Chance that a given gene will mutate.
+  final mutationRate = 0.005;
+  final SpaceGrid original;
+
+  List<SpaceGrid> _seedPopulation(int count) {
+    final population = <SpaceGrid>[];
+    for (var i = 0; i < count; i++) {
+      population.add(randomSolution(original, random));
+    }
+    return population;
+  }
+
+  List<SpaceGrid> _crossover(List<SpaceGrid> parents, int childCount) {
+    final children = <SpaceGrid>[];
+    for (var i = 0; i < childCount; i++) {
+      // Should probably pick unique parents?
+      final parent1 = parents.pickOne(random);
+      final parent2 = parents.pickOne(random);
+
+      final child = parent1.copy();
+      for (final position in parent2.allPositions) {
+        if (random.nextBool()) {
+          child[position] = parent2[position];
+        }
+      }
+      children.add(child);
+    }
+    return children;
+  }
+
+  SpaceGrid _mutate(SpaceGrid current, double mutationRate) {
+    final child = current.copy();
+    for (final position in child.allPositions) {
+      if (random.nextDouble() < mutationRate) {
+        if (child[position] == Space.path) {
+          child[position] = Space.empty;
+        } else if (child[position] == Space.empty) {
+          child[position] = Space.path;
+        }
+      }
+    }
+    return child;
+  }
+
+  List<SpaceGrid> _removeInvalidAndRepopulate(List<SpaceGrid> population) {
+    final valid = population.where(isConnected).toList();
+    final missing = populationSize - valid.length;
+    return [
+      ...valid,
+      ..._seedPopulation(missing),
+    ];
+  }
+
+  List<SpaceGrid> run(int rounds) {
+    final breederCount = (populationSize * breedingRate).ceil();
+    final survivorCount = (breederCount * survivalRate).ceil();
+    var pop = <SpaceGrid>[];
+
+    for (var i = 0; i < rounds; i++) {
+      // Mutations can cause individuals to become invalid.
+      pop = _removeInvalidAndRepopulate(pop);
+      final sorted = pop.toList()..sortBy<num>(score);
+      final survivors = sorted.sublist(0, survivorCount);
+      final breeders = sorted.sublist(0, breederCount);
+      final children = _crossover(breeders, populationSize - survivorCount);
+      pop = [
+        ...survivors,
+        ...children,
+        // And apply mutations.
+      ].map((c) => _mutate(c, mutationRate)).toList();
+    }
+    return pop;
+  }
+}
+
+SpaceGrid randomSolution(SpaceGrid grid, Random random) =>
+    Planner(grid, random).plan();
+
 void main(List<String> args) {
-  // Given a map of inputs and outputs, solve routing.
-
-  // Start with just one source and sink and see if the algorithm can solve
-  // for the path between them.
-
   // Do I care about segment direction?  I don't think so in the beginning.
 
-  // The easiest case is just one source and one sink.
   // A better case might be one source, one sink, and one intermediate?
   // Including an intermediate which is far away?
 
@@ -214,9 +310,8 @@ void main(List<String> args) {
     '  T  ',
   ]);
 
-  final planner = Planner(grid, Random());
-  final solution = planner.plan();
-
+  final random = Random();
+  final solution = Optimizer(grid, random).run(100).first;
   print(solution);
   print(isConnected(solution));
 }
