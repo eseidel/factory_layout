@@ -108,6 +108,9 @@ class Grid<T> {
 class SpaceGrid extends Grid<Space> {
   SpaceGrid(super.spaces);
 
+  SpaceGrid.empty(int width, int height)
+      : super(Grid.filled(width, height, Space.empty).spaces);
+
   factory SpaceGrid.fromStrings(List<String> strings) {
     // Parse the strings into a grid of spaces.
     final spaces = <List<Space>>[];
@@ -266,10 +269,7 @@ class Optimizer {
   List<SpaceGrid> _removeInvalidAndRepopulate(List<SpaceGrid> population) {
     final valid = population.where(isConnected).toList();
     final missing = populationCount - valid.length;
-    return [
-      ...valid,
-      ..._seedPopulation(missing),
-    ];
+    return [...valid, ..._seedPopulation(missing)];
   }
 
   List<SpaceGrid> run(int rounds) {
@@ -295,6 +295,8 @@ class Optimizer {
 SpaceGrid randomSolution(SpaceGrid grid, Random random) =>
     Planner(grid, random).plan();
 
+SpaceGrid solve(SpaceGrid grid) => Optimizer(grid).run(100).first;
+
 void main(List<String> args) {
   // Do I care about segment direction?  I don't think so in the beginning.
 
@@ -306,12 +308,11 @@ void main(List<String> args) {
   // What if a node has multiple possible inputs, only one of which needs
   // to be satisfied?
 
-  final grid = SpaceGrid.fromStrings([
-    '  S  ',
-    '     ',
-    '  T  ',
-  ]);
+  final grid = SpaceGrid.empty(5, 5);
+  grid[Position(0, 2)] = Space.source;
+  grid[Position(2, 4)] = Space.sink;
+  print(grid);
 
-  final solution = Optimizer(grid).run(100).first;
+  final solution = solve(grid);
   print(solution);
 }
