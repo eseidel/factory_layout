@@ -55,8 +55,12 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
-  LogicalEvent? _logicalEventFor(KeyDownEvent event) {
-    if (event.logicalKey == LogicalKeyboardKey.space) {
+  LogicalEvent? _logicalEventFor(KeyEvent event) {
+    if (state.playerDead) {
+      return null;
+    }
+    bool isRepeat = event is KeyRepeatEvent;
+    if (!isRepeat && event.logicalKey == LogicalKeyboardKey.space) {
       return LogicalEvent.interact();
     }
     if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
@@ -95,7 +99,7 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void handleKeyEvent(KeyDownEvent event) {
+  void handleKeyEvent(KeyEvent event) {
     var logical = _logicalEventFor(event);
     if (logical == null) {
       return;

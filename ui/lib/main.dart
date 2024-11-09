@@ -55,16 +55,15 @@ class _GamePageState extends State<GamePage>
             autofocus: true,
             focusNode: focusNode,
             onKeyEvent: (event) {
-              if (event is KeyDownEvent) {
-                if (!controller.state.playerDead) {
-                  controller.handleKeyEvent(event);
-                } else if (event.logicalKey == LogicalKeyboardKey.space) {
-                  controller.newGame();
-                }
+              if (event is KeyDownEvent || event is KeyRepeatEvent) {
+                controller.handleKeyEvent(event);
               }
             },
-            child: GameView(
-              controller: controller,
+            child: Listener(
+              onPointerDown: (_) => focusNode.requestFocus(),
+              child: GameView(
+                controller: controller,
+              ),
             ),
           ),
         ),
