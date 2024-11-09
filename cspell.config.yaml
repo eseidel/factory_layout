@@ -2,7 +2,17 @@ $schema: https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell
 version: '0.2'
 ignorePaths:
   - "**/build/**"
+  - "**/macos/**"
 words:
   - Seidel
   - Roguelike
   - autofocus
+  - Perlin
+  - ARGB
+  - Cupertino
+  - Schyler
+  - drawables
+  - LTWH
+  - scos
+  - ssin
+  - crossfade

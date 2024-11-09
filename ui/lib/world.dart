@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
 import 'package:fast_noise/fast_noise.dart';
+import 'package:flutter/material.dart';
 
 import 'characters.dart';
 import 'drawing.dart';
@@ -74,7 +74,7 @@ class Chunk {
         lit = Grid<bool>.filled(cells.size, (_) => false) {
     for (var position in allPositions) {
       final value =
-          noise.getPerlin2(position.x.toDouble(), position.y.toDouble());
+          noise.getNoise2(position.x.toDouble(), position.y.toDouble());
       cells.set(toLocal(position),
           value < 0.0 ? const Cell.wall() : const Cell.empty());
       // cells.set(toLocal(position), Cell(CellType.empty, value));
@@ -86,7 +86,7 @@ class Chunk {
   }
 
   void draw(Drawing drawing) {
-    // allPositions does not guarentee order.
+    // allPositions does not guarantee order.
     for (var position in allPositions) {
       final color =
           isPassable(position) ? Colors.brown.shade300 : Colors.brown.shade600;
@@ -283,7 +283,6 @@ class World {
       : seed = seed ?? 0,
         noise = PerlinNoise(
           seed: seed ?? 1337,
-          gain: 1.0,
           frequency: 0.1,
         );
 
