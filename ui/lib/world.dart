@@ -1,9 +1,7 @@
 import 'dart:math';
 
-import 'package:fast_noise/fast_noise.dart';
 import 'package:flutter/material.dart';
 
-import 'characters.dart';
 import 'drawing.dart';
 import 'geometry.dart';
 import 'grid.dart';
@@ -14,6 +12,12 @@ const ISize kChunkSize = ISize(10, 10);
 enum CellType {
   empty,
   wall,
+  source,
+  sink,
+  up,
+  down,
+  left,
+  right,
 }
 
 class Cell {
@@ -33,21 +37,29 @@ class Cell {
   bool get isWall => type == CellType.wall;
 
   Color get color {
-    switch (type) {
-      case CellType.empty:
-        return Colors.brown.shade300;
-      case CellType.wall:
-        return Colors.brown.shade600;
-    }
+    return {
+      CellType.empty: Colors.brown.shade300,
+      CellType.wall: Colors.brown.shade600,
+      CellType.source: Colors.blue.shade300,
+      CellType.sink: Colors.red.shade300,
+      CellType.up: Colors.green.shade300,
+      CellType.down: Colors.green.shade300,
+      CellType.left: Colors.green.shade300,
+      CellType.right: Colors.green.shade300,
+    }[type]!;
   }
 
   String toCharRepresentation() {
-    switch (type) {
-      case CellType.empty:
-        return ' ';
-      case CellType.wall:
-        return 'w';
-    }
+    return {
+      CellType.empty: '.',
+      CellType.wall: '#',
+      CellType.source: 'S',
+      CellType.sink: 'X',
+      CellType.up: '^',
+      CellType.down: 'v',
+      CellType.left: '<',
+      CellType.right: '>',
+    }[type]!;
   }
 }
 
@@ -72,26 +84,19 @@ GridPosition _getRandomPosition(ISize size, Random random) {
 
 class Chunk {
   final ChunkId chunkId;
-  final List<Enemy> enemies = [];
-  final List<Item> items = [];
+  // This is essentially the "foreground" layer, of static items.
   final Grid<Cell> cells;
+
+  final List<Item> items = [];
   final Grid<bool> mapped;
   final Grid<bool> lit;
 
-  Chunk(this.cells, this.chunkId, PerlinNoise noise)
+  Chunk(this.cells, this.chunkId)
       : mapped = Grid<bool>.filled(cells.size, (_) => false),
         lit = Grid<bool>.filled(cells.size, (_) => false) {
     for (var position in allPositions) {
-      final value =
-          noise.getNoise2(position.x.toDouble(), position.y.toDouble());
-      cells.set(toLocal(position),
-          value < 0.0 ? const Cell.wall() : const Cell.empty());
-      // cells.set(toLocal(position), Cell(CellType.empty, value));
+      cells.set(toLocal(position), const Cell.empty());
     }
-
-    // addManyWalls(10, random);
-    // spawnEnemies(2, random);
-    // spawnItems(random);
   }
 
   void draw(Drawing drawing) {
@@ -105,14 +110,6 @@ class Chunk {
     for (var item in items) {
       item.draw(drawing);
     }
-
-    for (var enemy in enemies) {
-      if (isLit(enemy.location)) {
-        enemy.draw(drawing);
-      } else {
-        drawing.add(enemy, const InvisibleDrawable(), enemy.location);
-      }
-    }
   }
 
   void addWall(Random random) {
@@ -124,12 +121,6 @@ class Chunk {
   void addManyWalls(int numberOfWalls, random) {
     for (int i = 0; i < numberOfWalls; ++i) {
       addWall(random);
-    }
-  }
-
-  void spawnEnemies(int count, Random random) {
-    for (int i = 0; i < count; ++i) {
-      enemies.add(Enemies.alien.spawn(getEnemySpawnLocation(random)));
     }
   }
 
@@ -211,25 +202,6 @@ class Chunk {
       return itemAt(toGlobal(position)) == null;
     }));
   }
-
-  Position getEnemySpawnLocation(Random random) {
-    return toGlobal(_getRandomGridPositionWithCondition(size, random,
-        (GridPosition position) {
-      if (!_isPassableLocal(position)) {
-        return false;
-      }
-      return enemyAt(toGlobal(position)) == null;
-    }));
-  }
-
-  Enemy? enemyAt(Position position) {
-    for (var enemy in enemies) {
-      if (enemy.location == position) {
-        return enemy;
-      }
-    }
-    return null;
-  }
 }
 
 class ChunkId {
@@ -263,46 +235,20 @@ class ChunkId {
 class World {
   final int seed;
   final Map<ChunkId, Chunk> _map = {};
-  final PerlinNoise noise;
 
-  World({int? seed})
-      : seed = seed ?? 0,
-        noise = PerlinNoise(
-          seed: seed ?? 1337,
-          frequency: 0.1,
-        );
+  World({int? seed}) : seed = seed ?? 0;
 
   Chunk get(ChunkId id) => _map.putIfAbsent(id, () => _generateChunk(id));
 
   Chunk _chunkAt(Position position) => get(ChunkId.fromPosition(position));
 
   Chunk _generateChunk(ChunkId chunkId) {
-    // This Random is wrong, use noise or similar instead.
-    // final random = Random(chunkId.hashCode ^ seed);
     final cells = Grid.filled(kChunkSize, (_) => const Cell.empty());
-    return Chunk(cells, chunkId, noise);
+    return Chunk(cells, chunkId);
   }
 
   bool isPassable(Position position) => _chunkAt(position).isPassable(position);
-  Enemy? enemyAt(Position position) => _chunkAt(position).enemyAt(position);
   Cell getCell(Position position) => _chunkAt(position).getCell(position);
   void setCell(Position position, Cell cell) =>
       _chunkAt(position).setCell(position, cell);
-
-  Item? pickupItem(Position position) {
-    final chunk = _chunkAt(position);
-    final item = chunk.itemAt(position);
-    if (item != null) {
-      chunk.items.remove(item);
-    }
-    return item;
-  }
-
-  void removeEnemy(Enemy enemy, {Item? droppedItem}) {
-    final chunk = _chunkAt(enemy.location);
-    chunk.enemies.remove(enemy);
-    if (droppedItem != null && chunk.itemAt(enemy.location) == null) {
-      chunk.items.add(droppedItem);
-    }
-  }
 }

@@ -62,15 +62,6 @@ class GameState {
     if (direction == null) {
       return null;
     }
-    final target = player.location + direction.delta;
-    final enemy = world.enemyAt(target);
-    if (enemy != null) {
-      return AttackAction(
-        target: target,
-        character: player,
-        direction: direction,
-      );
-    }
     return MoveAction(
       destination: player.location + direction.delta,
       direction: direction,
@@ -82,22 +73,7 @@ class GameState {
     if (player.location == position) {
       return player;
     }
-    return world.enemyAt(position);
-  }
-
-  void didMoveCharacter(Character character, Position oldLocation) {
-    // Enemies are stored per-chunk, which means we need to migrate them if they
-    // move across chunk boundaries.
-    if (character is! Enemy) {
-      return;
-    }
-    final oldChunk = getChunk(oldLocation);
-    final newChunk = getChunk(character.location);
-    if (oldChunk == newChunk) {
-      return;
-    }
-    oldChunk.enemies.remove(character);
-    newChunk.enemies.add(character);
+    return null;
   }
 
   void revealAround(Position position, double radius) {
@@ -130,13 +106,6 @@ class GameState {
   }
 
   void nextTurn() {
-    final enemies = activeChunks.fold<List<Enemy>>(
-        <Enemy>[], (enemies, chunk) => enemies..addAll(chunk.enemies));
-    for (var enemy in enemies) {
-      enemy.update(this);
-    }
-    var item = world.pickupItem(player.location);
-    item?.onPickup(this);
     updateVisibility();
   }
 }
