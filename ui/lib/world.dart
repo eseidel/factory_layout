@@ -32,6 +32,15 @@ class Cell {
   bool get isPassable => type == CellType.empty;
   bool get isWall => type == CellType.wall;
 
+  Color get color {
+    switch (type) {
+      case CellType.empty:
+        return Colors.brown.shade300;
+      case CellType.wall:
+        return Colors.brown.shade600;
+    }
+  }
+
   String toCharRepresentation() {
     switch (type) {
       case CellType.empty:
@@ -88,14 +97,8 @@ class Chunk {
   void draw(Drawing drawing) {
     // allPositions does not guarantee order.
     for (var position in allPositions) {
-      final color =
-          isPassable(position) ? Colors.brown.shade300 : Colors.brown.shade600;
-      // final cell = getCell(position);
-      // final color =
-      //     cell.value < 0.0 ? Colors.brown.shade300 : Colors.brown.shade600;
-      // // print("value: ${cell.value}");
-
-      //Color.fromARGB(255, 0, (255 * cell.value).round(), 0);
+      final cell = getCell(position);
+      final color = cell.color;
       drawing.addBackground(SolidDrawable(color), position);
     }
 
@@ -110,23 +113,6 @@ class Chunk {
         drawing.add(enemy, const InvisibleDrawable(), enemy.location);
       }
     }
-
-    // for (var position in allPositions) {
-    //   final isRevealed = this.isRevealed(position);
-    //   if (!isRevealed) {
-    //     drawing.addForeground(const SolidDrawable(Colors.black), position);
-    //   } else {
-    //     // Don't paint fog over walls to avoid changing their color.
-    //     final isWall = getCell(position).type == CellType.wall;
-    //     if (!isWall) {
-    //       final isLit = this.isLit(position);
-    //       if (!isLit) {
-    //         drawing.addForeground(
-    //             const SolidDrawable(Colors.black38), position);
-    //       }
-    //     }
-    //   }
-    // }
   }
 
   void addWall(Random random) {
