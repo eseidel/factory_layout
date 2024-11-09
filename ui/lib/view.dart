@@ -118,7 +118,7 @@ class GameController extends ChangeNotifier {
     _update();
   }
 
-  Position _hitTest(Offset position, Size size) {
+  Position hitTest(Offset position, Size size) {
     final cellSize = Size(
       size.width / window.width,
       size.height / window.height,
@@ -130,19 +130,9 @@ class GameController extends ChangeNotifier {
     return worldPosition + window.topLeft.clampToDelta();
   }
 
-  void handlePointerEvent(PointerEvent event, Size size) {
-    if (event is PointerDownEvent) {
-      // toggle the hit cell from empty to wall and vice versa
-      // Map from screen coordinates to world coordinates
-      final worldPosition = _hitTest(event.localPosition, size);
-      final cell = state.world.getCell(worldPosition);
-      if (cell.isWall) {
-        state.world.setCell(worldPosition, const Cell.empty());
-      } else {
-        state.world.setCell(worldPosition, const Cell.wall());
-      }
-      _update();
-    }
+  void setCell(Position position, Cell cell) {
+    state.world.setCell(position, cell);
+    _update();
   }
 
   void newGame() {

@@ -14,24 +14,22 @@ enum CellType {
   wall,
   source,
   sink,
-  up,
-  down,
-  left,
-  right,
+  tube,
 }
 
 class Cell {
   final CellType type;
-  final double value;
+  final Direction facingDirection;
 
-  const Cell(this.type, this.value);
+  const Cell(this.type, {this.facingDirection = Direction.up});
 
   const Cell.empty()
       : type = CellType.empty,
-        value = 0;
+        facingDirection = Direction.up;
+
   const Cell.wall()
       : type = CellType.wall,
-        value = 0;
+        facingDirection = Direction.up;
 
   bool get isPassable => type == CellType.empty;
   bool get isWall => type == CellType.wall;
@@ -42,11 +40,15 @@ class Cell {
       CellType.wall: Colors.brown.shade600,
       CellType.source: Colors.blue.shade300,
       CellType.sink: Colors.red.shade300,
-      CellType.up: Colors.green.shade300,
-      CellType.down: Colors.green.shade300,
-      CellType.left: Colors.green.shade300,
-      CellType.right: Colors.green.shade300,
+      CellType.tube: Colors.green.shade300,
     }[type]!;
+  }
+
+  Drawable get drawable {
+    return TransformDrawable.rst(
+      rotation: facingDirection.rotation,
+      drawable: SolidDrawable(color),
+    );
   }
 
   String toCharRepresentation() {
@@ -55,10 +57,12 @@ class Cell {
       CellType.wall: '#',
       CellType.source: 'S',
       CellType.sink: 'X',
-      CellType.up: '^',
-      CellType.down: 'v',
-      CellType.left: '<',
-      CellType.right: '>',
+      CellType.tube: {
+        Direction.up: '^',
+        Direction.down: 'v',
+        Direction.left: '<',
+        Direction.right: '>',
+      }[facingDirection]!,
     }[type]!;
   }
 }
@@ -103,8 +107,7 @@ class Chunk {
     // allPositions does not guarantee order.
     for (var position in allPositions) {
       final cell = getCell(position);
-      final color = cell.color;
-      drawing.addBackground(SolidDrawable(color), position);
+      drawing.addBackground(cell.drawable, position);
     }
 
     for (var item in items) {
