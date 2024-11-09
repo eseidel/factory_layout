@@ -1,6 +1,10 @@
 import 'dart:math';
 import 'dart:ui';
 
+extension OffsetToDelta on Offset {
+  Delta clampToDelta() => Delta(dx.toInt(), dy.toInt());
+}
+
 class Delta {
   final int dx;
   final int dy;

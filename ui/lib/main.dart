@@ -31,6 +31,7 @@ class _GamePageState extends State<GamePage>
     with TickerProviderStateMixin<GamePage> {
   final focusNode = FocusNode();
   late GameController controller;
+  final gameKey = GlobalKey();
 
   @override
   void initState() {
@@ -60,8 +61,15 @@ class _GamePageState extends State<GamePage>
               }
             },
             child: Listener(
-              onPointerDown: (_) => focusNode.requestFocus(),
+              onPointerDown: (event) {
+                focusNode.requestFocus();
+                final renderBox =
+                    gameKey.currentContext!.findRenderObject() as RenderBox;
+                final size = renderBox.size;
+                controller.handlePointerEvent(event, size);
+              },
               child: GameView(
+                key: gameKey,
                 controller: controller,
               ),
             ),

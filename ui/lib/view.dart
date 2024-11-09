@@ -5,11 +5,13 @@ import 'package:flutter/services.dart';
 import 'drawing.dart';
 import 'geometry.dart';
 import 'model.dart';
+import 'world.dart';
 
 class GameController extends ChangeNotifier {
   GameState state = GameState();
 
   Drawing get drawing => _drawing.value!;
+  // Window is the currently visible portion of the world in world coordinates.
   Rect get window => _window.value!;
   Duration elapsed = const Duration();
 
@@ -63,13 +65,17 @@ class GameController extends ChangeNotifier {
     if (!isRepeat && event.logicalKey == LogicalKeyboardKey.space) {
       return LogicalEvent.interact();
     }
-    if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+    if (event.logicalKey == LogicalKeyboardKey.arrowLeft ||
+        event.logicalKey == LogicalKeyboardKey.keyA) {
       return LogicalEvent.move(Direction.left);
-    } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowRight ||
+        event.logicalKey == LogicalKeyboardKey.keyD) {
       return LogicalEvent.move(Direction.right);
-    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
+        event.logicalKey == LogicalKeyboardKey.keyW) {
       return LogicalEvent.move(Direction.up);
-    } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowDown ||
+        event.logicalKey == LogicalKeyboardKey.keyS) {
       return LogicalEvent.move(Direction.down);
     }
     return null;
@@ -110,6 +116,33 @@ class GameController extends ChangeNotifier {
     }
     state.nextTurn();
     _update();
+  }
+
+  Position _hitTest(Offset position, Size size) {
+    final cellSize = Size(
+      size.width / window.width,
+      size.height / window.height,
+    );
+    final worldPosition = Position(
+      (position.dx / cellSize.width).floor(),
+      (position.dy / cellSize.height).floor(),
+    );
+    return worldPosition + window.topLeft.clampToDelta();
+  }
+
+  void handlePointerEvent(PointerEvent event, Size size) {
+    if (event is PointerDownEvent) {
+      // toggle the hit cell from empty to wall and vice versa
+      // Map from screen coordinates to world coordinates
+      final worldPosition = _hitTest(event.localPosition, size);
+      final cell = state.world.getCell(worldPosition);
+      if (cell.isWall) {
+        state.world.setCell(worldPosition, const Cell.empty());
+      } else {
+        state.world.setCell(worldPosition, const Cell.wall());
+      }
+      _update();
+    }
   }
 
   void newGame() {
