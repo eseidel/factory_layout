@@ -47,22 +47,7 @@ class IconSprite extends Sprite {
 class Sprites {
   Sprites._();
 
-  static const IconSprite key = IconSprite(IconData(0x1F511));
-  static const IconSprite map = IconSprite(IconData(0x1F5FA));
-  static const IconSprite firework = IconSprite(IconData(0x1F387));
   static const IconSprite heart = IconSprite(IconData(0x1F49C));
-  static const IconSprite sparkleHeart = IconSprite(IconData(0x1F496));
-  static const IconSprite alienMonster = IconSprite(IconData(0x1F47E));
   static const IconSprite flutterDash = IconSprite(Icons.flutter_dash);
-  static const IconSprite torch = IconSprite(IconData(0x1F4A1));
-  static const IconSprite worm = IconSprite(IconData(0x1F41B));
-  static const IconSprite ladyBug = IconSprite(IconData(0x1F41E));
   static const IconSprite ant = IconSprite(IconData(0x1F41C));
-  static const IconSprite openExit = IconSprite(IconData(0x1F573)); // hole
-  // IconSprite(IconData(0x1FAA8)); // rock, not in most fonts yet.
-  static const IconSprite closedExit = IconSprite(IconData(0x1F512));
-  // 0x1FA9C // ladder, not in most fonts yet.
-  static const IconSprite previousLevel =
-      IconSprite(IconData(0x1F300)); // cyclone
-  static const IconSprite emptyHeart = IconSprite(IconData(0x2661));
 }

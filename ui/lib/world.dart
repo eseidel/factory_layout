@@ -134,11 +134,7 @@ class Chunk {
   }
 
   void spawnItems(Random random) {
-    spawnOneItem(AreaReveal.new, random, chance: 0.50);
     spawnOneItem(HealOne.new, random, chance: 0.70);
-    spawnOneItem(HealAll.new, random, chance: 0.20);
-    spawnOneItem(Torch.new, random, chance: 0.05);
-    spawnOneItem(MaxHealthUp.new, random, chance: 0.05);
   }
 
   ISize get size => cells.size;
