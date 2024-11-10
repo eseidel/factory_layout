@@ -47,6 +47,7 @@ class IconSprite extends Sprite {
 class Sprites {
   Sprites._();
 
+  static const IconSprite tube = IconSprite(Icons.arrow_upward);
   static const IconSprite heart = IconSprite(IconData(0x1F49C));
   static const IconSprite flutterDash = IconSprite(Icons.flutter_dash);
   static const IconSprite ant = IconSprite(IconData(0x1F41C));

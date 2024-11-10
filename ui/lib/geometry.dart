@@ -144,4 +144,17 @@ enum Direction {
         return pi / 2;
     }
   }
+
+  Direction rotateRight() {
+    switch (this) {
+      case Direction.up:
+        return Direction.right;
+      case Direction.right:
+        return Direction.down;
+      case Direction.down:
+        return Direction.left;
+      case Direction.left:
+        return Direction.up;
+    }
+  }
 }

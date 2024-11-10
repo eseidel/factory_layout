@@ -24,7 +24,7 @@ class GameApp extends StatelessWidget {
 class ItemSelector extends StatelessWidget {
   final List<CellType> items;
   final ValueChanged<CellType> onItemSelected;
-  final CellType selectedItem;
+  final Cell selectedItem;
 
   const ItemSelector({
     super.key,
@@ -42,7 +42,7 @@ class ItemSelector extends StatelessWidget {
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        final cell = Cell(item);
+        final cell = Cell(item, facingDirection: selectedItem.facingDirection);
         var button = Container(
           color: cell.color,
           child: Center(
@@ -52,7 +52,7 @@ class ItemSelector extends StatelessWidget {
             ),
           ),
         );
-        if (item == selectedItem) {
+        if (item == selectedItem.type) {
           button = Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.white, width: 2),
@@ -109,6 +109,18 @@ class _GamePageState extends State<GamePage>
                 autofocus: true,
                 focusNode: focusNode,
                 onKeyEvent: (event) {
+                  if (event is KeyDownEvent &&
+                      event.logicalKey == LogicalKeyboardKey.keyR) {
+                    setState(() {
+                      selectedItem = Cell(
+                        selectedItem.type,
+                        facingDirection:
+                            selectedItem.facingDirection.rotateRight(),
+                      );
+                    });
+                    return;
+                  }
+
                   if (event is KeyDownEvent || event is KeyRepeatEvent) {
                     controller.handleKeyEvent(event);
                   }
@@ -135,10 +147,11 @@ class _GamePageState extends State<GamePage>
                 items: CellType.values,
                 onItemSelected: (item) {
                   setState(() {
-                    selectedItem = Cell(item);
+                    selectedItem = Cell(item,
+                        facingDirection: selectedItem.facingDirection);
                   });
                 },
-                selectedItem: selectedItem.type,
+                selectedItem: selectedItem,
               ),
             ),
           ],

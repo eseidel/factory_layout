@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:ui/sprite.dart';
 
 import 'drawing.dart';
 import 'geometry.dart';
@@ -45,9 +46,12 @@ class Cell {
   }
 
   Drawable get drawable {
+    final drawable = type == CellType.tube
+        ? SpriteDrawable(Sprites.tube)
+        : SolidDrawable(color);
     return TransformDrawable.rst(
       rotation: facingDirection.rotation,
-      drawable: SolidDrawable(color),
+      drawable: drawable,
     );
   }
 
@@ -125,16 +129,6 @@ class Chunk {
     for (int i = 0; i < numberOfWalls; ++i) {
       addWall(random);
     }
-  }
-
-  void spawnOneItem(ItemFactory item, Random random, {double chance = 1.0}) {
-    if (random.nextDouble() < chance) {
-      items.add(item(location: getItemSpawnLocation(random)));
-    }
-  }
-
-  void spawnItems(Random random) {
-    spawnOneItem(HealOne.new, random, chance: 0.70);
   }
 
   ISize get size => cells.size;

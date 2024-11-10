@@ -4,10 +4,22 @@ import 'package:flutter/material.dart';
 
 import 'drawing.dart';
 import 'geometry.dart';
-import 'items.dart';
 import 'model.dart';
 import 'sprite.dart';
 import 'world.dart';
+
+abstract class Mob {
+  Position location;
+  Direction facingDirection = Direction.up;
+
+  Mob({required this.location});
+
+  Drawable get drawable;
+
+  void draw(Drawing drawing) {
+    drawing.add(this, drawable, location);
+  }
+}
 
 abstract class Character extends Mob {
   int maxHealth;
@@ -61,13 +73,6 @@ class Player extends Character {
       drawable: avatar,
     );
   }
-}
-
-class Drop {
-  final double chance;
-  final ItemFactory item;
-
-  const Drop(this.chance, this.item);
 }
 
 abstract class Brain {
