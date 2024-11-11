@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:ui/sprite.dart';
 
+import 'belt.dart';
 import 'drawing.dart';
 import 'geometry.dart';
 import 'grid.dart';
@@ -76,6 +77,8 @@ class Chunk {
   // This is essentially the "foreground" layer, of static items.
   final List<PlacedItem> items = [];
 
+  final List<BeltSegment> beltSegments = [];
+
   Chunk(this.chunkId);
 
   ISize get size => kChunkSize;
@@ -83,6 +86,9 @@ class Chunk {
   void draw(Drawing drawing) {
     for (var item in items) {
       item.draw(drawing);
+    }
+    for (var segment in beltSegments) {
+      segment.draw(drawing);
     }
   }
 
@@ -109,13 +115,59 @@ class Chunk {
     return items.firstWhereOrNull((item) => item.location == position);
   }
 
-  void placeItem(Position position, PlacedItem cell) {
+  void placeItem(Position position, PlacedItem item) {
     // Later we might throw an exception if the item is already placed.
     final existing = getItem(position);
     if (existing != null) {
       items.remove(existing);
     }
-    items.add(cell);
+    items.add(item);
+    onPlaceItem(item);
+  }
+
+  Iterable<PlacedItem> _inputBelts(Position position) {
+    return Direction.values
+        .map((direction) => getItem(position + direction.delta))
+        .nonNulls
+        .where((item) => item.isBelt)
+        .where(
+            (item) => item.location + item.facingDirection.delta == position);
+  }
+
+  BeltSegment? _segmentForBelt(PlacedItem belt) {
+    return beltSegments
+        .firstWhereOrNull((segment) => segment.belts.contains(belt));
+  }
+
+  void onPlaceItem(PlacedItem item) {
+    // When placing an item that is a belt, we need to potentially add that
+    // item to the belt system.
+    // For now we handle the simple cases of just adding to an existing belt.
+    // We look for a single belt flowing into this position and add it to that segment.
+
+    if (item.isBelt) {
+      // If there was already a belt there, we probably need to recompute
+      // but don't currently.
+
+      // Otherwise check for neighbors.
+      final inputBelts = _inputBelts(item.location);
+      final outputBelt = getItem(item.location + item.facingDirection.delta);
+      if (inputBelts.isNotEmpty) {
+        // If the belt is pointing towards this position, add us to the end
+        // Should probably split the segment if there are multiple inputs.
+        final inputBelt = inputBelts.first;
+        final segment = _segmentForBelt(inputBelt)!;
+        segment.addBeltToEnd(item);
+      } else if (outputBelt != null) {
+        // Look up the segment and add this belt to it.
+        // If we're pointing at the belt add us to the start.
+        final segment = _segmentForBelt(outputBelt)!;
+        segment.addBeltToStart(item);
+      } else {
+        // Create a new segment with this belt.
+        beltSegments.add(BeltSegment([item]));
+      }
+    }
   }
 
   Iterable<Position> get allPositions =>
@@ -202,4 +254,15 @@ class World {
       _chunkAt(position).getItem(position);
   void placeItem(Position position, PlacedItem item) =>
       _chunkAt(position).placeItem(position, item);
+
+  void update(double elapsed) {
+    for (var chunk in _map.values) {
+      for (var segment in chunk.beltSegments) {
+        segment.update(elapsed);
+        if (segment.hasSpaceAtStart) {
+          segment.addItemToStart(ItemType.wall);
+        }
+      }
+    }
+  }
 }
