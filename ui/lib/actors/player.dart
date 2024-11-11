@@ -8,9 +8,8 @@ import '../objects/platform_block.dart';
 
 class Player extends SpriteAnimationComponent
     with KeyboardHandler, CollisionCallbacks, HasGameReference<FactoryGame> {
-  Player({
-    required super.position,
-  }) : super(size: Vector2.all(64), anchor: Anchor.center);
+  Player({required super.position})
+      : super(size: Vector2.all(64), anchor: Anchor.center);
 
   final Vector2 velocity = Vector2.zero();
   final Vector2 fromAbove = Vector2(0, -1);
@@ -22,7 +21,6 @@ class Player extends SpriteAnimationComponent
 
   bool hasJumped = false;
   bool isOnGround = false;
-  bool hitByEnemy = false;
 
   @override
   Future<void> onLoad() async {
@@ -35,9 +33,7 @@ class Player extends SpriteAnimationComponent
       ),
     );
 
-    add(
-      CircleHitbox(),
-    );
+    add(CircleHitbox());
   }
 
   @override

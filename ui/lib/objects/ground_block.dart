@@ -39,6 +39,7 @@ class GroundBlock extends SpriteComponent with HasGameReference<FactoryGame> {
     velocity.x = game.objectSpeed;
     position += velocity * dt;
 
+    // If it's more than a single block offscreen to the left, remove the block.
     if (position.x < -size.x) {
       removeFromParent();
       if (gridPosition.x == 0) {

@@ -9,7 +9,7 @@ import 'objects/ground_block.dart';
 import 'objects/platform_block.dart';
 
 class FactoryGame extends FlameGame
-    with HasCollisionDetection, HasKeyboardHandlerComponents {
+    with HasCollisionDetection, HasKeyboardHandlerComponents, TapDetector {
   FactoryGame();
 
   late Player _player;
@@ -36,6 +36,12 @@ class FactoryGame extends FlameGame
     return const Color.fromARGB(255, 173, 223, 247);
   }
 
+  @override
+  void onTapDown(TapDownInfo info) {
+    // Figure out which block is hit
+    // Turn that block into a ground block.
+  }
+
   void loadGameSegments(int segmentIndex, double xPositionOffset) {
     for (final block in segments[segmentIndex]) {
       final component = switch (block.blockType) {
@@ -52,6 +58,9 @@ class FactoryGame extends FlameGame
       world.add(component);
     }
   }
+
+  // Block size is 64x64
+  // This code does not try to handle resizing at all (yet).
 
   void initializeGame({required bool loadHud}) {
     // Assume that size.x < 3200
