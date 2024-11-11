@@ -1,67 +1,67 @@
-import 'dart:math';
-
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:ui/sprite.dart';
 
 import 'drawing.dart';
 import 'geometry.dart';
 import 'grid.dart';
-import 'items.dart';
 
 const ISize kChunkSize = ISize(10, 10);
 
-enum CellType {
-  empty,
+enum ItemType {
   wall,
   source,
   sink,
-  tube,
-}
-
-class Cell {
-  final CellType type;
-  final Direction facingDirection;
-
-  const Cell(this.type, {this.facingDirection = Direction.up});
-
-  const Cell.empty()
-      : type = CellType.empty,
-        facingDirection = Direction.up;
-
-  const Cell.wall()
-      : type = CellType.wall,
-        facingDirection = Direction.up;
-
-  bool get isPassable => type == CellType.empty;
-  bool get isWall => type == CellType.wall;
+  belt;
 
   Color get color {
     return {
-      CellType.empty: Colors.brown.shade300,
-      CellType.wall: Colors.brown.shade600,
-      CellType.source: Colors.blue.shade300,
-      CellType.sink: Colors.red.shade300,
-      CellType.tube: Colors.green.shade300,
-    }[type]!;
+      ItemType.wall: Colors.brown.shade600,
+      ItemType.source: Colors.blue.shade300,
+      ItemType.sink: Colors.red.shade300,
+      ItemType.belt: Colors.green.shade300,
+    }[this]!;
   }
 
   Drawable get drawable {
-    final drawable = type == CellType.tube
+    return this == ItemType.belt
         ? SpriteDrawable(Sprites.tube)
         : SolidDrawable(color);
+  }
+}
+
+class PlacedItem {
+  final Position location;
+  final ItemType type;
+  final Direction facingDirection;
+
+  const PlacedItem({
+    required this.location,
+    required this.type,
+    this.facingDirection = Direction.up,
+  });
+
+  bool get isPassable => type != ItemType.wall;
+  bool get isWall => type == ItemType.wall;
+  bool get isBelt => type == ItemType.belt;
+
+  Drawable get drawable {
     return TransformDrawable.rst(
       rotation: facingDirection.rotation,
-      drawable: drawable,
+      drawable: type.drawable,
     );
+  }
+
+  void draw(Drawing drawing) {
+    drawing.addForeground(drawable, location);
   }
 
   String toCharRepresentation() {
     return {
-      CellType.empty: '.',
-      CellType.wall: '#',
-      CellType.source: 'S',
-      CellType.sink: 'X',
-      CellType.tube: {
+      ItemType.wall: '#',
+      ItemType.source: 'S',
+      ItemType.sink: 'X',
+      ItemType.belt: {
         Direction.up: '^',
         Direction.down: 'v',
         Direction.left: '<',
@@ -71,71 +71,24 @@ class Cell {
   }
 }
 
-GridPosition _getRandomGridPositionWithCondition(
-    ISize size, Random random, bool Function(GridPosition position) allowed) {
-  // FIXME: Track seen positions and avoid repeats / terminate if tried all?
-  while (true) {
-    final position = _getRandomPosition(size, random);
-    if (allowed(position)) {
-      return position;
-    }
-  }
-}
-
-GridPosition _getRandomPosition(ISize size, Random random) {
-  var area = size.width * size.height;
-  var offset = random.nextInt(area);
-  var width = (offset / size.width).truncate();
-  var height = offset % size.height;
-  return GridPosition(width, height);
-}
-
 class Chunk {
   final ChunkId chunkId;
   // This is essentially the "foreground" layer, of static items.
-  final Grid<Cell> cells;
+  final List<PlacedItem> items = [];
 
-  final List<Item> items = [];
-  final Grid<bool> mapped;
-  final Grid<bool> lit;
+  Chunk(this.chunkId);
 
-  Chunk(this.cells, this.chunkId)
-      : mapped = Grid<bool>.filled(cells.size, (_) => false),
-        lit = Grid<bool>.filled(cells.size, (_) => false) {
-    for (var position in allPositions) {
-      cells.set(toLocal(position), const Cell.empty());
-    }
-  }
+  ISize get size => kChunkSize;
 
   void draw(Drawing drawing) {
-    // allPositions does not guarantee order.
-    for (var position in allPositions) {
-      final cell = getCell(position);
-      drawing.addBackground(cell.drawable, position);
-    }
-
     for (var item in items) {
       item.draw(drawing);
     }
   }
 
-  void addWall(Random random) {
-    final position = _getRandomGridPositionWithCondition(
-        size, random, (position) => _getCellLocal(position).isPassable);
-    cells.set(position, const Cell.wall());
+  bool isPassable(Position position) {
+    return getItem(position)?.isPassable ?? true;
   }
-
-  void addManyWalls(int numberOfWalls, random) {
-    for (int i = 0; i < numberOfWalls; ++i) {
-      addWall(random);
-    }
-  }
-
-  ISize get size => cells.size;
-
-  bool _isPassableLocal(GridPosition position) =>
-      _getCellLocal(position).isPassable;
-  bool isPassable(Position position) => _isPassableLocal(toLocal(position));
 
   GridPosition toLocal(Position position) {
     return GridPosition(position.x - chunkId.x * kChunkSize.width,
@@ -147,53 +100,57 @@ class Chunk {
         position.y + chunkId.y * kChunkSize.height);
   }
 
-  Rect get bounds => toGlobal(GridPosition.zero).toOffset() & size.toSize();
+  Rect get bounds =>
+      toGlobal(GridPosition.zero).toOffset() & kChunkSize.toSize();
 
   bool contains(Position position) => ChunkId.fromPosition(position) == chunkId;
 
-  Cell _getCellLocal(GridPosition position) => cells.get(position)!;
-  Cell getCell(Position position) => _getCellLocal(toLocal(position));
+  PlacedItem? getItem(Position position) {
+    return items.firstWhereOrNull((item) => item.location == position);
+  }
 
-  void setCell(Position position, Cell cell) {
-    cells.set(toLocal(position), cell);
+  void placeItem(Position position, PlacedItem cell) {
+    // Later we might throw an exception if the item is already placed.
+    final existing = getItem(position);
+    if (existing != null) {
+      items.remove(existing);
+    }
+    items.add(cell);
   }
 
   Iterable<Position> get allPositions =>
       allGridPositions.map((position) => toGlobal(position));
-  Iterable<GridPosition> get allGridPositions => cells.allPositions;
+  Iterable<GridPosition> get allGridPositions {
+    final positions = <GridPosition>[];
+    for (var x = 0; x < size.width; x++) {
+      for (var y = 0; y < size.height; y++) {
+        positions.add(GridPosition(x, y));
+      }
+    }
+    return positions;
+  }
 
   @override
   String toString() {
     final buffer = StringBuffer();
-    for (var row in cells.cellsByRow) {
-      for (var cell in row) {
-        buffer.write(cell.toCharRepresentation());
+    int i = 0;
+    for (final position in allPositions) {
+      final cell = getItem(position);
+      buffer.write(cell?.toCharRepresentation() ?? '.');
+      if (++i % size.width == 0) {
+        buffer.write('\n');
       }
-      buffer.write('\n');
     }
     return buffer.toString();
   }
 
-  bool isRevealed(Position position) => mapped.get(toLocal(position)) ?? false;
-  bool isLit(Position position) => lit.get(toLocal(position)) ?? false;
-
-  Item? itemAt(Position position) {
+  PlacedItem? itemAt(Position position) {
     for (var item in items) {
       if (item.location == position) {
         return item;
       }
     }
     return null;
-  }
-
-  Position getItemSpawnLocation(Random random) {
-    return toGlobal(_getRandomGridPositionWithCondition(size, random,
-        (GridPosition position) {
-      if (!_isPassableLocal(position)) {
-        return false;
-      }
-      return itemAt(toGlobal(position)) == null;
-    }));
   }
 }
 
@@ -236,12 +193,13 @@ class World {
   Chunk _chunkAt(Position position) => get(ChunkId.fromPosition(position));
 
   Chunk _generateChunk(ChunkId chunkId) {
-    final cells = Grid.filled(kChunkSize, (_) => const Cell.empty());
-    return Chunk(cells, chunkId);
+    return Chunk(chunkId);
   }
 
   bool isPassable(Position position) => _chunkAt(position).isPassable(position);
-  Cell getCell(Position position) => _chunkAt(position).getCell(position);
-  void setCell(Position position, Cell cell) =>
-      _chunkAt(position).setCell(position, cell);
+
+  PlacedItem? getPlacedItem(Position position) =>
+      _chunkAt(position).getItem(position);
+  void placeItem(Position position, PlacedItem item) =>
+      _chunkAt(position).placeItem(position, item);
 }

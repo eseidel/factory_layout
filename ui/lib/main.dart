@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'geometry.dart';
 import 'view.dart';
 import 'world.dart';
 
@@ -22,15 +23,17 @@ class GameApp extends StatelessWidget {
 }
 
 class ItemSelector extends StatelessWidget {
-  final List<CellType> items;
-  final ValueChanged<CellType> onItemSelected;
-  final Cell selectedItem;
+  final List<ItemType> items;
+  final ValueChanged<ItemType> onItemSelected;
+  final ItemType selectedItem;
+  final Direction selectedDirection;
 
   const ItemSelector({
     super.key,
     required this.items,
     required this.onItemSelected,
     required this.selectedItem,
+    required this.selectedDirection,
   });
 
   @override
@@ -42,9 +45,13 @@ class ItemSelector extends StatelessWidget {
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        final cell = Cell(item, facingDirection: selectedItem.facingDirection);
+        final cell = PlacedItem(
+          location: Position.zero,
+          type: item,
+          facingDirection: selectedDirection,
+        );
         var button = Container(
-          color: cell.color,
+          color: item.color,
           child: Center(
             child: Text(
               cell.toCharRepresentation(),
@@ -52,7 +59,7 @@ class ItemSelector extends StatelessWidget {
             ),
           ),
         );
-        if (item == selectedItem.type) {
+        if (item == selectedItem) {
           button = Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.white, width: 2),
@@ -82,7 +89,8 @@ class _GamePageState extends State<GamePage>
   late GameController controller;
   final gameKey = GlobalKey();
 
-  Cell selectedItem = const Cell.wall();
+  ItemType selectedItem = ItemType.wall;
+  Direction selectedDirection = Direction.up;
 
   @override
   void initState() {
@@ -112,11 +120,7 @@ class _GamePageState extends State<GamePage>
                   if (event is KeyDownEvent &&
                       event.logicalKey == LogicalKeyboardKey.keyR) {
                     setState(() {
-                      selectedItem = Cell(
-                        selectedItem.type,
-                        facingDirection:
-                            selectedItem.facingDirection.rotateRight(),
-                      );
+                      selectedDirection = selectedDirection.rotateRight();
                     });
                     return;
                   }
@@ -133,7 +137,11 @@ class _GamePageState extends State<GamePage>
                     final size = renderBox.size;
                     final worldPosition =
                         controller.hitTest(event.localPosition, size);
-                    controller.setCell(worldPosition, selectedItem);
+                    controller.placeItem(
+                      position: worldPosition,
+                      itemType: selectedItem,
+                      direction: selectedDirection,
+                    );
                   },
                   child: GameView(
                     key: gameKey,
@@ -144,14 +152,14 @@ class _GamePageState extends State<GamePage>
             ),
             Expanded(
               child: ItemSelector(
-                items: CellType.values,
+                items: ItemType.values,
                 onItemSelected: (item) {
                   setState(() {
-                    selectedItem = Cell(item,
-                        facingDirection: selectedItem.facingDirection);
+                    selectedItem = item;
                   });
                 },
                 selectedItem: selectedItem,
+                selectedDirection: selectedDirection,
               ),
             ),
           ],

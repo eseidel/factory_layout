@@ -6,7 +6,6 @@ import 'drawing.dart';
 import 'geometry.dart';
 import 'model.dart';
 import 'sprite.dart';
-import 'world.dart';
 
 abstract class Mob {
   Position location;
@@ -102,59 +101,6 @@ class MoveAction extends GameAction {
     character.facingDirection = direction;
     if (state.world.isPassable(destination)) {
       character.location = destination;
-    }
-  }
-}
-
-class AttackAction extends GameAction {
-  final Direction direction;
-  final Position target;
-  final int amount;
-
-  const AttackAction({
-    required this.target,
-    required super.character,
-    required this.direction,
-    this.amount = 1,
-  });
-
-  @override
-  void execute(GameState state) {
-    character.facingDirection = direction;
-    state.characterAt(target)?.hit(state, amount);
-  }
-}
-
-class InteractAction extends GameAction {
-  final Position target;
-
-  const InteractAction({required this.target, required super.character});
-
-  static bool canInteractWith(GameState state, Mob mob, Position target) {
-    if (mob is! Player) {
-      return false;
-    }
-    final cell = state.world.getCell(target);
-    return mob.carryingBlock && cell.isPassable ||
-        (!mob.carryingBlock && cell.isWall);
-  }
-
-  @override
-  void execute(GameState state) {
-    final player = state.player;
-    final direction = player.facingDirection;
-    final target = player.location + direction.delta;
-    final cell = state.world.getCell(target);
-    if (player.carryingBlock) {
-      if (cell.isPassable) {
-        state.world.setCell(target, const Cell.wall());
-        player.carryingBlock = false;
-      }
-    } else {
-      if (cell.isWall) {
-        state.world.setCell(target, const Cell.empty());
-        player.carryingBlock = true;
-      }
     }
   }
 }

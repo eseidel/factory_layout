@@ -114,7 +114,6 @@ class GameController extends ChangeNotifier {
     if (playerAction != null) {
       playerAction.execute(state);
     }
-    state.nextTurn();
     _update();
   }
 
@@ -130,8 +129,36 @@ class GameController extends ChangeNotifier {
     return worldPosition + window.topLeft.clampToDelta();
   }
 
-  void setCell(Position position, Cell cell) {
-    state.world.setCell(position, cell);
+  void placeItem({
+    required Position position,
+    required ItemType itemType,
+    Direction direction = Direction.up,
+  }) {
+    final item = PlacedItem(
+        location: position, type: itemType, facingDirection: direction);
+    state.world.placeItem(position, item);
+
+    // When placing an item that is a belt, we need to potentially add that
+    // item to the belt system.
+    // For now we handle the simple cases of just adding to an existing belt.
+    // We look for a single belt flowing into this position and add it to that segment.
+
+    if (item.isBelt) {
+      // If there was already a belt there, we probably need to recompute
+      // but don't currently.
+
+      // Otherwise check for neighbors.
+      final neighbors = Direction.values
+          .where((dir) => dir != item.facingDirection)
+          .map((dir) => state.world.getPlacedItem(position + dir.delta));
+      final belts = neighbors.nonNulls.where((item) => item.isBelt);
+      if (belts.isNotEmpty) {
+        // Look up the segment and add this belt to it.
+      } else {
+        // Create a new segment with this belt.
+      }
+    }
+
     _update();
   }
 

@@ -23,7 +23,6 @@ class GameState {
   })  : world = World(seed: seed),
         random = Random(seed) {
     player = Player.spawn(Position.zero);
-    updateVisibility();
   }
 
   Chunk get focusedChunk => getChunk(player.location);
@@ -50,14 +49,6 @@ class GameState {
   bool get playerDead => player.currentHealth <= 0;
 
   GameAction? actionFor(Player player, LogicalEvent logical) {
-    if (logical.interact) {
-      var direction = player.facingDirection;
-      final target = player.location + direction.delta;
-      if (InteractAction.canInteractWith(this, player, target)) {
-        return InteractAction(target: target, character: player);
-      }
-    }
-
     var direction = logical.direction;
     if (direction == null) {
       return null;
@@ -74,38 +65,5 @@ class GameState {
       return player;
     }
     return null;
-  }
-
-  void revealAround(Position position, double radius) {
-    var gridRadius = radius.ceil();
-    for (var position
-        in player.location.positionsInNearbyGrid(gridRadius, gridRadius)) {
-      var delta = position.deltaTo(player.location);
-      var chunk = getChunk(position);
-      var gridPosition = chunk.toLocal(position);
-      if (delta.magnitude < radius) {
-        chunk.mapped.set(gridPosition, true);
-      }
-    }
-  }
-
-  void updateVisibility() {
-    var radius = player.lightRadius.ceil();
-    for (var position
-        in player.location.positionsInNearbyGrid(radius, radius)) {
-      var delta = position.deltaTo(player.location);
-      var chunk = getChunk(position);
-      var gridPosition = chunk.toLocal(position);
-      if (delta.magnitude < player.lightRadius) {
-        chunk.mapped.set(gridPosition, true);
-        chunk.lit.set(gridPosition, true);
-      } else {
-        chunk.lit.set(gridPosition, false);
-      }
-    }
-  }
-
-  void nextTurn() {
-    updateVisibility();
   }
 }
