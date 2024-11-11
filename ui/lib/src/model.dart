@@ -38,8 +38,6 @@ class GameState {
     }
   }
 
-  bool get playerDead => player.currentHealth <= 0;
-
   GameAction? actionFor(Player player, LogicalEvent logical) {
     var direction = logical.direction;
     if (direction == null) {

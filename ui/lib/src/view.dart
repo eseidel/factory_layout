@@ -9,9 +9,6 @@ class GameController extends ChangeNotifier {
   GameState state = GameState();
 
   LogicalEvent? _logicalEventFor(KeyEvent event) {
-    if (state.playerDead) {
-      return null;
-    }
     bool isRepeat = event is KeyRepeatEvent;
     if (!isRepeat && event.logicalKey == LogicalKeyboardKey.space) {
       return LogicalEvent.interact();

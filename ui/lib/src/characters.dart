@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'geometry.dart';
 import 'model.dart';
 
@@ -11,37 +9,13 @@ abstract class Mob {
 }
 
 abstract class Character extends Mob {
-  int maxHealth;
-  int currentHealth;
-
   Character({
     required super.location,
-    required this.maxHealth,
-    required this.currentHealth,
   });
-
-  void applyHealthChange(GameState state, int delta) {
-    currentHealth = max(min(currentHealth + delta, maxHealth), 0);
-    if (currentHealth == 0) {
-      didExhaustHealth(state);
-    }
-  }
-
-  void didExhaustHealth(GameState state) {}
 }
 
 class Player extends Character {
-  double lightRadius = 2.5;
-  bool carryingBlock = false;
-
-  Player.spawn(Position location)
-      : super(location: location, maxHealth: 10, currentHealth: 10);
-
-  int get missingHealth => maxHealth - currentHealth;
-}
-
-abstract class Brain {
-  void update(GameState state);
+  Player.spawn(Position location) : super(location: location);
 }
 
 abstract class GameAction {
