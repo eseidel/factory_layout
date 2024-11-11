@@ -29,15 +29,6 @@ class GameState {
   Chunk getChunk(Position position) =>
       world.get(ChunkId.fromPosition(position));
 
-  Iterable<Chunk> get activeChunks sync* {
-    final chunkId = ChunkId.fromPosition(player.location);
-    for (int dx = -1; dx <= 1; dx++) {
-      for (int dy = -1; dy <= 1; dy++) {
-        yield world.get(ChunkId(chunkId.x + dx, chunkId.y + dy));
-      }
-    }
-  }
-
   GameAction? actionFor(Player player, LogicalEvent logical) {
     var direction = logical.direction;
     if (direction == null) {
@@ -48,12 +39,5 @@ class GameState {
       direction: direction,
       character: player,
     );
-  }
-
-  Character? characterAt(Position position) {
-    if (player.location == position) {
-      return player;
-    }
-    return null;
   }
 }
