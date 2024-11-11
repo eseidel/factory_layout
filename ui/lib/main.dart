@@ -1,7 +1,11 @@
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
+import 'package:ui/src/game.dart';
 
 void main() {
-  final game = FlameGame();
-  runApp(GameWidget(game: game));
+  runApp(
+    const GameWidget<FactoryGame>.controlled(
+      gameFactory: FactoryGame.new,
+    ),
+  );
 }
