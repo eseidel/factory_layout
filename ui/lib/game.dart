@@ -3,12 +3,10 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-import 'actors/ember.dart';
+import 'actors/player.dart';
 import 'managers/segment_manager.dart';
 import 'objects/ground_block.dart';
 import 'objects/platform_block.dart';
-import 'objects/star.dart';
-import 'overlays/hud.dart';
 
 class EmberQuestGame extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
@@ -18,8 +16,6 @@ class EmberQuestGame extends FlameGame
   late double lastBlockXPosition = 0.0;
   late UniqueKey lastBlockKey;
 
-  int starsCollected = 0;
-  int health = 3;
   double cloudSpeed = 0.0;
   double objectSpeed = 0.0;
 
@@ -41,14 +37,6 @@ class EmberQuestGame extends FlameGame
   }
 
   @override
-  void update(double dt) {
-    if (health <= 0) {
-      overlays.add('GameOver');
-    }
-    super.update(dt);
-  }
-
-  @override
   Color backgroundColor() {
     return const Color.fromARGB(255, 173, 223, 247);
   }
@@ -61,10 +49,6 @@ class EmberQuestGame extends FlameGame
             xOffset: xPositionOffset,
           ),
         const (PlatformBlock) => PlatformBlock(
-            gridPosition: block.gridPosition,
-            xOffset: xPositionOffset,
-          ),
-        const (Star) => Star(
             gridPosition: block.gridPosition,
             xOffset: xPositionOffset,
           ),
@@ -87,14 +71,9 @@ class EmberQuestGame extends FlameGame
       position: Vector2(128, canvasSize.y - 128),
     );
     world.add(_ember);
-    if (loadHud) {
-      camera.viewport.add(Hud());
-    }
   }
 
   void reset() {
-    starsCollected = 0;
-    health = 3;
     initializeGame(loadHud: false);
   }
 }

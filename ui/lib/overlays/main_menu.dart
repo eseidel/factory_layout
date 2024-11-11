@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../ember_quest.dart';
+import '../game.dart';
 
 class MainMenu extends StatelessWidget {
   // Reference to parent game.
@@ -30,7 +30,7 @@ class MainMenu extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'Ember Quest',
+                'Factory',
                 style: TextStyle(
                   color: whiteTextColor,
                   fontSize: 24,
@@ -59,8 +59,7 @@ class MainMenu extends StatelessWidget {
               const SizedBox(height: 20),
               const Text(
                 '''Use WASD or Arrow Keys for movement.
-Space bar to jump.
-Collect as many stars as you can and avoid enemies!''',
+Space bar to jump.''',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: whiteTextColor,

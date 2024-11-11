@@ -1,12 +1,10 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
 import 'package:flutter/services.dart';
 
 import '../game.dart';
 import '../objects/ground_block.dart';
 import '../objects/platform_block.dart';
-import '../objects/star.dart';
 
 class EmberPlayer extends SpriteAnimationComponent
     with KeyboardHandler, CollisionCallbacks, HasGameReference<EmberQuestGame> {
@@ -90,15 +88,6 @@ class EmberPlayer extends SpriteAnimationComponent
     // Adjust ember position.
     position += velocity * dt;
 
-    // If ember fell in pit, then game over.
-    if (position.y > game.size.y + size.y) {
-      game.health = 0;
-    }
-
-    if (game.health <= 0) {
-      removeFromParent();
-    }
-
     // Flip ember if needed.
     if (horizontalDirection < 0 && scale.x > 0) {
       flipHorizontally();
@@ -133,30 +122,6 @@ class EmberPlayer extends SpriteAnimationComponent
       }
     }
 
-    if (other is Star) {
-      other.removeFromParent();
-      game.starsCollected++;
-    }
     super.onCollision(intersectionPoints, other);
-  }
-
-  // This method runs an opacity effect on ember
-  // to make it blink.
-  void hit() {
-    if (!hitByEnemy) {
-      game.health--;
-      hitByEnemy = true;
-    }
-    add(
-      OpacityEffect.fadeOut(
-        EffectController(
-          alternate: true,
-          duration: 0.1,
-          repeatCount: 5,
-        ),
-      )..onComplete = () {
-          hitByEnemy = false;
-        },
-    );
   }
 }

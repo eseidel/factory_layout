@@ -4,7 +4,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
-import '../ember_quest.dart';
+import '../game.dart';
 import '../managers/segment_manager.dart';
 
 class GroundBlock extends SpriteComponent
@@ -53,9 +53,6 @@ class GroundBlock extends SpriteComponent
       if (game.lastBlockKey == _blockKey) {
         game.lastBlockXPosition = position.x + size.x - 10;
       }
-    }
-    if (game.health <= 0) {
-      removeFromParent();
     }
 
     super.update(dt);
