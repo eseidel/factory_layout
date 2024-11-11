@@ -7,7 +7,6 @@ import '../ember_quest.dart';
 import '../objects/ground_block.dart';
 import '../objects/platform_block.dart';
 import '../objects/star.dart';
-import 'water_enemy.dart';
 
 class EmberPlayer extends SpriteAnimationComponent
     with KeyboardHandler, CollisionCallbacks, HasGameReference<EmberQuestGame> {
@@ -137,10 +136,6 @@ class EmberPlayer extends SpriteAnimationComponent
     if (other is Star) {
       other.removeFromParent();
       game.starsCollected++;
-    }
-
-    if (other is WaterEnemy) {
-      hit();
     }
     super.onCollision(intersectionPoints, other);
   }

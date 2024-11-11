@@ -2,7 +2,6 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
 import '../ember_quest.dart';
-import 'heart.dart';
 
 class Hud extends PositionComponent with HasGameReference<EmberQuestGame> {
   Hud({
@@ -41,17 +40,6 @@ class Hud extends PositionComponent with HasGameReference<EmberQuestGame> {
         anchor: Anchor.center,
       ),
     );
-
-    for (var i = 1; i <= game.health; i++) {
-      final positionX = 40 * i;
-      await add(
-        HeartHealthComponent(
-          heartNumber: i,
-          position: Vector2(positionX.toDouble(), 20),
-          size: Vector2.all(32),
-        ),
-      );
-    }
 
     return super.onLoad();
   }

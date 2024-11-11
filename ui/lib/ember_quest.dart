@@ -4,7 +4,6 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import 'actors/ember.dart';
-import 'actors/water_enemy.dart';
 import 'managers/segment_manager.dart';
 import 'objects/ground_block.dart';
 import 'objects/platform_block.dart';
@@ -66,10 +65,6 @@ class EmberQuestGame extends FlameGame
             xOffset: xPositionOffset,
           ),
         const (Star) => Star(
-            gridPosition: block.gridPosition,
-            xOffset: xPositionOffset,
-          ),
-        const (WaterEnemy) => WaterEnemy(
             gridPosition: block.gridPosition,
             xOffset: xPositionOffset,
           ),
