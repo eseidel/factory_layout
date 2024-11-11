@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 
-import 'drawing.dart';
 import 'world.dart';
 
 class ItemOffset {
@@ -81,19 +80,6 @@ class BeltSegment {
       if (item.offset <= 0) {
         items.removeAt(0);
       }
-    }
-  }
-
-  void draw(Drawing drawing) {
-    for (var item in items) {
-      // This is a hack and we should just compute the exact position of the item.
-      // But that would require changing how we draw items since we currently only
-      // draw based on integer positions.
-      final offset = item.offset.floor().clamp(0, belts.length - 1);
-      drawing.addForeground(
-        item.item.drawable,
-        belts[offset].location,
-      );
     }
   }
 }

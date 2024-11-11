@@ -2,10 +2,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import 'belt.dart';
-import 'drawing.dart';
 import 'geometry.dart';
 import 'grid.dart';
-import 'sprite.dart';
 
 const ISize kChunkSize = ISize(10, 10);
 
@@ -23,12 +21,6 @@ enum ItemType {
       ItemType.belt: Colors.green.shade300,
     }[this]!;
   }
-
-  Drawable get drawable {
-    return this == ItemType.belt
-        ? const SpriteDrawable(Sprites.tube)
-        : SolidDrawable(color);
-  }
 }
 
 class PlacedItem {
@@ -45,17 +37,6 @@ class PlacedItem {
   bool get isPassable => type != ItemType.wall;
   bool get isWall => type == ItemType.wall;
   bool get isBelt => type == ItemType.belt;
-
-  Drawable get drawable {
-    return TransformDrawable.rst(
-      rotation: facingDirection.rotation,
-      drawable: type.drawable,
-    );
-  }
-
-  void draw(Drawing drawing) {
-    drawing.addForeground(drawable, location);
-  }
 
   String toCharRepresentation() {
     return {
@@ -82,15 +63,6 @@ class Chunk {
   Chunk(this.chunkId);
 
   ISize get size => kChunkSize;
-
-  void draw(Drawing drawing) {
-    for (var item in items) {
-      item.draw(drawing);
-    }
-    for (var segment in beltSegments) {
-      segment.draw(drawing);
-    }
-  }
 
   bool isPassable(Position position) {
     return getItem(position)?.isPassable ?? true;

@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'characters.dart';
-import 'drawing.dart';
 import 'geometry.dart';
 import 'world.dart';
 
@@ -37,13 +36,6 @@ class GameState {
         yield world.get(ChunkId(chunkId.x + dx, chunkId.y + dy));
       }
     }
-  }
-
-  void draw(Drawing drawing) {
-    for (var chunk in activeChunks) {
-      chunk.draw(drawing);
-    }
-    player.draw(drawing);
   }
 
   bool get playerDead => player.currentHealth <= 0;

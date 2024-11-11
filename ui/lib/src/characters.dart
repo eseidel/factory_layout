@@ -1,23 +1,13 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-
-import 'drawing.dart';
 import 'geometry.dart';
 import 'model.dart';
-import 'sprite.dart';
 
 abstract class Mob {
   Position location;
   Direction facingDirection = Direction.up;
 
   Mob({required this.location});
-
-  Drawable get drawable;
-
-  void draw(Drawing drawing) {
-    drawing.add(this, drawable, location);
-  }
 }
 
 abstract class Character extends Mob {
@@ -48,26 +38,6 @@ class Player extends Character {
       : super(location: location, maxHealth: 10, currentHealth: 10);
 
   int get missingHealth => maxHealth - currentHealth;
-
-  @override
-  Drawable get drawable {
-    Drawable avatar = const SpriteDrawable(Sprites.ant);
-
-    if (carryingBlock) {
-      final block = TransformDrawable.rst(
-        scale: 0.25,
-        dx: 0.0,
-        dy: -0.6,
-        drawable: SolidDrawable(Colors.brown.shade600),
-      );
-      avatar = CompositeDrawable([avatar, block]);
-    }
-
-    return TransformDrawable.rst(
-      rotation: facingDirection.rotation,
-      drawable: avatar,
-    );
-  }
 }
 
 abstract class Brain {
