@@ -1,11 +1,11 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:ui/sprite.dart';
 
 import 'belt.dart';
 import 'drawing.dart';
 import 'geometry.dart';
 import 'grid.dart';
+import 'sprite.dart';
 
 const ISize kChunkSize = ISize(10, 10);
 
@@ -26,7 +26,7 @@ enum ItemType {
 
   Drawable get drawable {
     return this == ItemType.belt
-        ? SpriteDrawable(Sprites.tube)
+        ? const SpriteDrawable(Sprites.tube)
         : SolidDrawable(color);
   }
 }

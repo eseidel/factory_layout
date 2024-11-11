@@ -19,3 +19,5 @@ words:
   - platformer
   - RGBO
   - WASD
+  - lerp
+  - vsync

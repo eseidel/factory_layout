@@ -37,10 +37,6 @@ abstract class Character extends Mob {
     }
   }
 
-  void hit(GameState state, int amount) {
-    applyHealthChange(state, -amount);
-  }
-
   void didExhaustHealth(GameState state) {}
 }
 
