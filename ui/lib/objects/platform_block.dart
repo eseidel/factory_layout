@@ -3,8 +3,7 @@ import 'package:flame/components.dart';
 
 import '../game.dart';
 
-class PlatformBlock extends SpriteComponent
-    with HasGameReference<EmberQuestGame> {
+class PlatformBlock extends SpriteComponent with HasGameReference<FactoryGame> {
   final Vector2 gridPosition;
   double xOffset;
 

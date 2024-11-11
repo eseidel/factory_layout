@@ -4,7 +4,7 @@ import '../game.dart';
 
 class MainMenu extends StatelessWidget {
   // Reference to parent game.
-  final EmberQuestGame game;
+  final FactoryGame game;
 
   const MainMenu({required this.game, super.key});
 

@@ -6,9 +6,9 @@ import '../game.dart';
 import '../objects/ground_block.dart';
 import '../objects/platform_block.dart';
 
-class EmberPlayer extends SpriteAnimationComponent
-    with KeyboardHandler, CollisionCallbacks, HasGameReference<EmberQuestGame> {
-  EmberPlayer({
+class Player extends SpriteAnimationComponent
+    with KeyboardHandler, CollisionCallbacks, HasGameReference<FactoryGame> {
+  Player({
     required super.position,
   }) : super(size: Vector2.all(64), anchor: Anchor.center);
 

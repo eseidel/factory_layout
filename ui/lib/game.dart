@@ -8,15 +8,14 @@ import 'managers/segment_manager.dart';
 import 'objects/ground_block.dart';
 import 'objects/platform_block.dart';
 
-class EmberQuestGame extends FlameGame
+class FactoryGame extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
-  EmberQuestGame();
+  FactoryGame();
 
-  late EmberPlayer _ember;
+  late Player _player;
   late double lastBlockXPosition = 0.0;
   late UniqueKey lastBlockKey;
 
-  double cloudSpeed = 0.0;
   double objectSpeed = 0.0;
 
   @override
@@ -26,10 +25,6 @@ class EmberQuestGame extends FlameGame
       'block.png',
       'ember.png',
       'ground.png',
-      'heart_half.png',
-      'heart.png',
-      'star.png',
-      'water_enemy.png',
     ]);
     camera.viewfinder.anchor = Anchor.topLeft;
 
@@ -67,10 +62,10 @@ class EmberQuestGame extends FlameGame
       loadGameSegments(i, (640 * i).toDouble());
     }
 
-    _ember = EmberPlayer(
+    _player = Player(
       position: Vector2(128, canvasSize.y - 128),
     );
-    world.add(_ember);
+    world.add(_player);
   }
 
   void reset() {
