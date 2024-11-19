@@ -29,9 +29,6 @@ class PlatformBlock extends SpriteComponent with HasGameReference<FactoryGame> {
   void update(double dt) {
     velocity.x = game.objectSpeed;
     position += velocity * dt;
-    if (position.x < -size.x) {
-      removeFromParent();
-    }
     super.update(dt);
   }
 }

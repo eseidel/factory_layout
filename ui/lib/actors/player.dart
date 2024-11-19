@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 
 import '../game.dart';
 import '../objects/ground_block.dart';
-import '../objects/platform_block.dart';
 
 class Player extends SpriteAnimationComponent
     with KeyboardHandler, CollisionCallbacks, HasGameReference<FactoryGame> {
@@ -56,11 +55,7 @@ class Player extends SpriteAnimationComponent
   void update(double dt) {
     velocity.x = horizontalDirection * moveSpeed;
     game.objectSpeed = 0;
-    // Prevent ember from going backwards at screen edge.
-    if (position.x - 36 <= 0 && horizontalDirection < 0) {
-      velocity.x = 0;
-    }
-    // Prevent ember from going beyond half screen.
+    // Prevent player from going beyond half screen.
     if (position.x + 64 >= game.size.x / 2 && horizontalDirection > 0) {
       velocity.x = 0;
       game.objectSpeed = -moveSpeed;
@@ -69,7 +64,7 @@ class Player extends SpriteAnimationComponent
     // Apply basic gravity.
     velocity.y += gravity;
 
-    // Determine if ember has jumped.
+    // Determine if player has jumped.
     if (hasJumped) {
       if (isOnGround) {
         velocity.y = -jumpSpeed;
@@ -78,13 +73,13 @@ class Player extends SpriteAnimationComponent
       hasJumped = false;
     }
 
-    // Prevent ember from jumping to crazy fast.
+    // Prevent player from jumping to crazy fast.
     velocity.y = velocity.y.clamp(-jumpSpeed, terminalVelocity);
 
-    // Adjust ember position.
+    // Adjust player position.
     position += velocity * dt;
 
-    // Flip ember if needed.
+    // Flip player if needed.
     if (horizontalDirection < 0 && scale.x > 0) {
       flipHorizontally();
     } else if (horizontalDirection > 0 && scale.x < 0) {
@@ -95,7 +90,7 @@ class Player extends SpriteAnimationComponent
 
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
-    if (other is GroundBlock || other is PlatformBlock) {
+    if (other is ItemBlock) {
       if (intersectionPoints.length == 2) {
         // Calculate the collision normal and separation distance.
         final mid = (intersectionPoints.elementAt(0) +
