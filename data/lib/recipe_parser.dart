@@ -1,6 +1,9 @@
 import 'package:collection/collection.dart';
+// ignore: implementation_imports
 import 'package:lua_dardo/src/compiler/ast/exp.dart';
+// ignore: implementation_imports
 import 'package:lua_dardo/src/compiler/ast/stat.dart';
+// ignore: implementation_imports
 import 'package:lua_dardo/src/compiler/parser/parser.dart';
 
 class Item {
@@ -94,11 +97,15 @@ class Recipe {
 }
 
 class RecipeParser {
+  Never _fail(Exp exp, String message) {
+    throw 'Failed to parse $exp on ${exp.lastLine}: $message';
+  }
+
   Set<CraftSite> _parseCraftSites(Exp exp) {
     if (exp is TableAccessExp) {
       final prefix = (exp.prefixExp as NameExp?)?.name;
       if (prefix != 'CraftSite') {
-        throw 'Invalid CraftSite $exp on line ${exp.lastLine}';
+        _fail(exp, 'Invalid CraftSite');
       }
       final key = (exp.keyExp as StringExp).str;
       return {CraftSite.fromString("$prefix.$key")};
@@ -106,28 +113,27 @@ class RecipeParser {
     if (exp is FuncCallExp) {
       return exp.args.map(_parseCraftSites).expand((e) => e).toSet();
     }
-    throw 'Invalid CraftSite $exp on line ${exp.lastLine}';
+    _fail(exp, 'Invalid CraftSite');
   }
 
   Duration _parseDuration(Exp exp) {
     if (exp is! FuncCallExp) {
-      throw 'Invalid duration $exp on line ${exp.lastLine}';
+      _fail(exp, 'Invalid duration');
     }
     final name = (exp.prefixExp as NameExp).name;
-    if (name == 'seconds') {
-      final arg = exp.args.first;
-      final int milliseconds;
-      if (arg is IntegerExp) {
-        milliseconds = arg.val * 1000;
-      } else if (arg is FloatExp) {
-        milliseconds = (arg.val * 1000).toInt();
-      } else {
-        throw 'Invalid duration $exp on line ${exp.lastLine}';
-      }
-      return Duration(milliseconds: milliseconds);
-    } else {
-      throw 'Unsupported duration type $name $exp on line ${exp.lastLine}';
+    if (name != 'seconds') {
+      _fail(exp, 'Invalid duration');
     }
+    final arg = exp.args.first;
+    final int milliseconds;
+    if (arg is IntegerExp) {
+      milliseconds = arg.val * 1000;
+    } else if (arg is FloatExp) {
+      milliseconds = (arg.val * 1000).toInt();
+    } else {
+      _fail(exp, 'Invalid duration');
+    }
+    return Duration(milliseconds: milliseconds);
   }
 
   (Item, int) _parseItemCount(Exp exp) {
@@ -135,7 +141,7 @@ class RecipeParser {
     //  Item.create("material.mineral", 5),
     // __TS__New(FluidItem, FluidType.Water, 10)
     if (exp is! FuncCallExp) {
-      throw 'Invalid item count $exp on line ${exp.lastLine}';
+      _fail(exp, 'Invalid item count');
     }
     final String name;
     final Exp prefixExp = exp.prefixExp;
@@ -146,10 +152,10 @@ class RecipeParser {
       if (key is StringExp) {
         name = key.str;
       } else {
-        throw 'Invalid item count $exp on line ${exp.lastLine}';
+        _fail(exp, 'Invalid item count');
       }
     } else {
-      throw 'Invalid item count $exp on line ${exp.lastLine}';
+      _fail(exp, 'Invalid item count');
     }
     if (name == 'create') {
       final args = exp.args;
@@ -159,14 +165,14 @@ class RecipeParser {
       } else if (args.length == 2) {
         count = (args[1] as IntegerExp).val;
       } else {
-        throw 'Invalid item count $exp on line ${exp.lastLine}';
+        _fail(exp, 'Invalid item count');
       }
       final itemName = (args[0] as StringExp).str;
       return (Item(itemName), count);
     } else if (name == '__TS__New') {
       final args = exp.args;
       if (args.length != 3) {
-        throw 'Invalid item count $exp on line ${exp.lastLine}';
+        _fail(exp, 'Invalid item count');
       }
       final itemExp = (args[1] as TableAccessExp);
       final prefix = (itemExp.prefixExp as NameExp?)?.name;
@@ -175,14 +181,13 @@ class RecipeParser {
       final count = (args[2] as IntegerExp).val;
       return (Item(itemName), count);
     } else {
-      print(name);
-      throw 'Unsupported item count $name $exp on line ${exp.lastLine}';
+      _fail(exp, 'Invalid item count');
     }
   }
 
   Map<Item, int> _parseItemCounts(Exp exp) {
     if (exp is! TableConstructorExp) {
-      throw 'Invalid item counts $exp on line ${exp.lastLine}';
+      _fail(exp, 'Invalid item counts');
     }
     final items = <Item, int>{};
     for (final valExp in exp.valExps) {
@@ -194,11 +199,11 @@ class RecipeParser {
 
   CraftTab _parseCraftTab(Exp exp) {
     if (exp is! TableAccessExp) {
-      throw 'Invalid CraftTab $exp on line ${exp.lastLine}';
+      _fail(exp, 'Invalid CraftTab');
     }
     final prefix = (exp.prefixExp as NameExp?)?.name;
     if (prefix != 'CraftTab') {
-      throw 'Invalid CraftTab $exp on line ${exp.lastLine}';
+      _fail(exp, 'Invalid CraftTab');
     }
     final key = (exp.keyExp as StringExp).str;
     return CraftTab.fromString("$prefix.$key");
@@ -218,14 +223,14 @@ class RecipeParser {
     // ))
     final args = stat.exp.args;
     if (args.length != 1) {
-      throw 'Invalid CraftManager:add call.';
+      _fail(stat.exp, 'Invalid CraftManager:add call');
     }
     if (args.first is! FuncCallExp) {
-      throw 'Invalid CraftManager:add call.';
+      _fail(stat.exp, 'Invalid CraftManager:add call');
     }
     final inner = args.first as FuncCallExp;
     if (inner.args.length != 9) {
-      throw 'Invalid CraftRecipe call.';
+      _fail(inner, 'Invalid CraftRecipe');
     }
     // Ignore the first argument.
     final name = (inner.args[1] as StringExp).str;
@@ -262,8 +267,7 @@ class RecipeParser {
         final name = stat.exp.nameExp?.str;
         // We want the CraftManager:add calls.
         if (name == "add") {
-          final Recipe recipe = _parseCraftManagerAdd(stat);
-          recipes.add(recipe);
+          recipes.add(_parseCraftManagerAdd(stat));
         }
       }
     }
