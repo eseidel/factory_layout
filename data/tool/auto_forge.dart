@@ -3,6 +3,7 @@
 
 import 'dart:io';
 
+import 'package:data/loot_parser.dart';
 import 'package:data/recipe_parser.dart';
 
 void main(List<String> args) {
@@ -18,18 +19,19 @@ void main(List<String> args) {
     return;
   }
 
-  // We care about recipes.lua.
-  final recipesFile = File('$scriptsPath/recipes.lua');
-  if (!recipesFile.existsSync()) {
-    print('File does not exist: ${recipesFile.path}');
-    return;
+  String readLuaFile(String path) {
+    final file = File('$scriptsPath/$path');
+    if (!file.existsSync()) {
+      throw ArgumentError('File does not exist: $path');
+    }
+    return file.readAsStringSync();
   }
 
-  print('Reading recipes file: ${recipesFile.path}');
-  final recipesLua = recipesFile.readAsStringSync();
-
-  final parser = RecipeParser();
-  final recipes = parser.parse(recipesLua);
+  final recipes = RecipeParser().parse(readLuaFile('recipes.lua'));
   print('Parsed ${recipes.length} recipes.');
+
+  final loot = LootParser().parse(readLuaFile('loot.lua'));
+  print('Parsed ${loot.length} loot.');
+
   // Generate the yaml files with the data.
 }
