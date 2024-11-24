@@ -20,6 +20,12 @@ class Parser {
     throw 'Failed to parse $exp on ${exp.lastLine}: $message';
   }
 
+  void expect(Exp exp, bool condition, String message) {
+    if (!condition) {
+      fail(exp, message);
+    }
+  }
+
   Block parseLua(String content) {
     return lua_dardo.Parser.parse(content, "main");
   }
