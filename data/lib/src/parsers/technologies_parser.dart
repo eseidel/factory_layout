@@ -22,10 +22,30 @@ class Technology {
     required this.hiddenRecipes,
     required this.dependencies,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'icon': icon,
+      'location': location,
+      'time': time.inMilliseconds,
+      'inputs': inputs,
+      'recipes': recipes,
+      'hiddenRecipes': hiddenRecipes,
+      'dependencies': dependencies,
+    };
+  }
 }
 
 class TechnologyManager {
   final List<Technology> technologies = [];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'technologies': technologies.map((tech) => tech.toJson()).toList(),
+    };
+  }
 }
 
 class TechnologiesParser extends Parser {

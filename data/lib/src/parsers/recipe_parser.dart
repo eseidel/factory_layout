@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 
+import '../extensions/string.dart';
 import 'parser.dart';
 
 class Item {

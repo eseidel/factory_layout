@@ -6,6 +6,18 @@ import 'dart:io';
 import 'package:data/data.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
+void writeYamlFiles(Data data, String outPath) {
+  // Generate the yaml files with the data.
+  final outDir = Directory('outPath');
+  if (!outDir.existsSync()) {
+    outDir.createSync();
+  }
+  writeAsYaml('out/recipes.yaml',
+      data.recipes.map((recipe) => recipe.toJson()).toList());
+  writeAsYaml('out/loot.yaml', data.loot.toJson());
+  writeAsYaml('out/technologies.yaml', data.technologies.toJson());
+}
+
 void main(List<String> args) {
   // Take in a path to the scripts directory.
   if (args.length != 1) {
@@ -13,58 +25,31 @@ void main(List<String> args) {
     return;
   }
   final scriptsPath = args[0];
-  final directory = Directory(scriptsPath);
-  if (!directory.existsSync()) {
-    print('Directory does not exist: $scriptsPath');
-    return;
-  }
+  final data = Data.load(scriptsPath);
 
-  String readLuaFile(String path) {
-    final file = File('$scriptsPath/$path');
-    if (!file.existsSync()) {
-      throw ArgumentError('File does not exist: $path');
-    }
-    return file.readAsStringSync();
-  }
+  print('Parsed ${data.recipes.length} recipes.');
+  print('Parsed ${data.loot.groups.length} loot groups '
+      'and ${data.loot.batches.length} loot batches.');
+  print('Parsed ${data.technologies.technologies.length} technologies.');
 
-  final recipes = RecipeParser().parse(readLuaFile('recipes.lua'));
-  print('Parsed ${recipes.length} recipes.');
-
-  final lootSystem = LootParser().parse(readLuaFile('loot.lua'));
-  print('Parsed ${lootSystem.groups.length} loot groups '
-      'and ${lootSystem.batches.length} loot batches.');
-
-  final technologySystem =
-      TechnologiesParser().parse(readLuaFile('technologies.lua'));
-  print('Parsed ${technologySystem.technologies.length} technologies.');
-
-  // Generate the yaml files with the data.
-  final content = {
-    'recipes': recipes.map((recipe) => recipe.toJson()).toList(),
-    'loot': lootSystem.toJson(),
-  };
-  final outDir = Directory('out');
-  if (!outDir.existsSync()) {
-    outDir.createSync();
-  }
-  writeAsYaml('out/content.yaml', content);
+  writeYamlFiles(data, 'out');
 
   // Print all recipes which produce material.iron_ingot.
-  findLoot(recipes, lootSystem, 'material.iron_ingot');
+  findLoot(data, 'material.iron_ingot');
 }
 
-void writeAsYaml(String path, Map<String, dynamic> json) {
+void writeAsYaml(String path, dynamic json) {
   final file = File(path);
   final yamlEditor = YamlEditor('')..update([], json);
   file.writeAsStringSync(yamlEditor.toString());
 }
 
-void findLoot(List<Recipe> recipes, LootSystem lootSystem, String desired,
+void findLoot(Data data, String desired,
     {Set<LootOrigin> allowedOrigins = const {
       LootOrigin.husbandry,
       LootOrigin.farming
     }}) {
-  for (final recipe in recipes) {
+  for (final recipe in data.recipes) {
     if (recipe.outputs.keys.any((output) => output.name == desired)) {
       print(recipe.name);
     }
@@ -80,7 +65,7 @@ void findLoot(List<Recipe> recipes, LootSystem lootSystem, String desired,
   // }
 
   // Print any loot batches which produce material.iron_ingot.
-  for (final entry in lootSystem.batches.entries) {
+  for (final entry in data.loot.batches.entries) {
     final batch = entry.value;
     if (allowedOrigins.contains(batch.origin) &&
         batch.listings.any((listing) => listing.groups.any((group) =>
