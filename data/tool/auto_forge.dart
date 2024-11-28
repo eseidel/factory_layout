@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:data/loot_parser.dart';
 import 'package:data/recipe_parser.dart';
+import 'package:yaml_edit/yaml_edit.dart';
 
 void main(List<String> args) {
   // Take in a path to the scripts directory.
@@ -35,9 +36,20 @@ void main(List<String> args) {
       'and ${lootSystem.batches.length} loot batches.');
 
   // Generate the yaml files with the data.
+  final content = {
+    'recipes': recipes.map((recipe) => recipe.toJson()).toList(),
+    'loot': lootSystem.toJson(),
+  };
+  writeAsYaml('content.yaml', content);
 
   // Print all recipes which produce material.iron_ingot.
   findLoot(recipes, lootSystem, 'material.iron_ingot');
+}
+
+void writeAsYaml(String path, Map<String, dynamic> json) {
+  final file = File(path);
+  final yamlEditor = YamlEditor('')..update([], json);
+  file.writeAsStringSync(yamlEditor.toString());
 }
 
 void findLoot(List<Recipe> recipes, LootSystem lootSystem, String desired,

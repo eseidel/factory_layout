@@ -84,6 +84,19 @@ class Recipe {
     required this.id,
     required this.unlocked,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'inputs': inputs.map((key, value) => MapEntry(key.name, value)),
+      'outputs': outputs.map((key, value) => MapEntry(key.name, value)),
+      'duration': duration.inMilliseconds,
+      'sites': sites.map((e) => e.toString()).toList(),
+      'tab': tab.toString(),
+      'id': id,
+      'unlocked': unlocked,
+    };
+  }
 }
 
 class RecipeParser extends Parser {

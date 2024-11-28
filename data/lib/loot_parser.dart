@@ -18,6 +18,17 @@ class LootSystem {
     }
     return group;
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'groups': {
+        for (final entry in groups.entries) entry.key: entry.value.toJson(),
+      },
+      'batches': {
+        for (final entry in batches.entries) entry.key: entry.value.toJson(),
+      },
+    };
+  }
 }
 
 class QuantityWeights {
@@ -47,6 +58,16 @@ class LootItem {
     required this.quantityWeights,
     this.isBonus = false,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'quantityWeights': quantityWeights.dropAmounts
+          .map((e) => {'chance': e.chance, 'count': e.count})
+          .toList(),
+      'isBonus': isBonus,
+    };
+  }
 }
 
 class LootGroupEntry {
@@ -54,6 +75,13 @@ class LootGroupEntry {
   final int chance;
 
   LootGroupEntry(this.item, this.chance);
+
+  Map<String, dynamic> toJson() {
+    return {
+      'item': item.toJson(),
+      'chance': chance,
+    };
+  }
 }
 
 // Loot groups are a set of items which may all drop at once.
@@ -65,6 +93,12 @@ class LootGroup {
 
   LootGroup.single(LootItem item, {int chance = 100})
       : entries = [LootGroupEntry(item, chance)];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'entries': entries.map((e) => e.toJson()).toList(),
+    };
+  }
 }
 
 enum LootOrigin {
@@ -140,6 +174,15 @@ class LootBatch {
   final List<LootListing> listings;
 
   LootBatch(this.name, this.origin, this.listings);
+
+  Map<String, dynamic> toJson() {
+    return {
+      'origin': origin.toString().split('.').last,
+      'listings': listings
+          .map((e) => e.groups.map((e) => e.toJson()).toList())
+          .toList(),
+    };
+  }
 }
 
 class LootParser extends Parser {
