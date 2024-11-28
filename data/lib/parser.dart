@@ -20,6 +20,12 @@ class Parser {
     throw 'Failed to parse $exp on ${exp.lastLine}: $message';
   }
 
+  String tableAccessToString(TableAccessExp exp) {
+    final prefix = (exp.prefixExp as NameExp?)?.name;
+    final key = (exp.keyExp as StringExp).str;
+    return "$prefix.$key";
+  }
+
   void expect(Exp exp, bool condition, String message) {
     if (!condition) {
       fail(exp, message);

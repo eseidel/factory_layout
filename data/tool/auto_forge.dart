@@ -30,8 +30,9 @@ void main(List<String> args) {
   final recipes = RecipeParser().parse(readLuaFile('recipes.lua'));
   print('Parsed ${recipes.length} recipes.');
 
-  final loot = LootParser().parse(readLuaFile('loot.lua'));
-  print('Parsed ${loot.length} loot.');
+  final lootSystem = LootParser().parse(readLuaFile('loot.lua'));
+  print('Parsed ${lootSystem.groups.length} loot groups '
+      'and ${lootSystem.batches.length} loot batches.');
 
   // Generate the yaml files with the data.
 }

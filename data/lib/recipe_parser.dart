@@ -89,12 +89,8 @@ class Recipe {
 class RecipeParser extends Parser {
   Set<CraftSite> _parseCraftSites(Exp exp) {
     if (exp is TableAccessExp) {
-      final prefix = (exp.prefixExp as NameExp?)?.name;
-      if (prefix != 'CraftSite') {
-        fail(exp, 'Invalid CraftSite');
-      }
-      final key = (exp.keyExp as StringExp).str;
-      return {CraftSite.fromString("$prefix.$key")};
+      final name = tableAccessToString(exp);
+      return {CraftSite.fromString(name)};
     }
     if (exp is FuncCallExp) {
       return exp.args.map(_parseCraftSites).expand((e) => e).toSet();
@@ -161,9 +157,7 @@ class RecipeParser extends Parser {
         fail(exp, 'Invalid item count');
       }
       final itemExp = (args[1] as TableAccessExp);
-      final prefix = (itemExp.prefixExp as NameExp?)?.name;
-      final key = (itemExp.keyExp as StringExp).str;
-      final itemName = '$prefix.$key';
+      final itemName = tableAccessToString(itemExp);
       final count = (args[2] as IntegerExp).val;
       return (Item(itemName), count);
     } else {
@@ -187,12 +181,7 @@ class RecipeParser extends Parser {
     if (exp is! TableAccessExp) {
       fail(exp, 'Invalid CraftTab');
     }
-    final prefix = (exp.prefixExp as NameExp?)?.name;
-    if (prefix != 'CraftTab') {
-      fail(exp, 'Invalid CraftTab');
-    }
-    final key = (exp.keyExp as StringExp).str;
-    return CraftTab.fromString("$prefix.$key");
+    return CraftTab.fromString(tableAccessToString(exp));
   }
 
   Recipe _parseCraftManagerAdd(FuncCallStat stat) {
