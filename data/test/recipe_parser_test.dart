@@ -1,4 +1,4 @@
-import 'package:data/recipe_parser.dart';
+import 'package:data/src/parsers/recipe_parser.dart';
 import 'package:test/test.dart';
 
 void main() {

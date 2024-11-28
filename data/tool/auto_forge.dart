@@ -3,8 +3,7 @@
 
 import 'dart:io';
 
-import 'package:data/loot_parser.dart';
-import 'package:data/recipe_parser.dart';
+import 'package:data/data.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
 void main(List<String> args) {
