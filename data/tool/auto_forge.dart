@@ -8,7 +8,7 @@ import 'package:yaml_edit/yaml_edit.dart';
 
 void writeYamlFiles(Data data, String outPath) {
   // Generate the yaml files with the data.
-  final outDir = Directory('outPath');
+  final outDir = Directory(outPath);
   if (!outDir.existsSync()) {
     outDir.createSync();
   }
@@ -19,13 +19,11 @@ void writeYamlFiles(Data data, String outPath) {
 }
 
 void main(List<String> args) {
-  // Take in a path to the scripts directory.
   if (args.length != 1) {
     print('Usage: auto_forge <scriptsPath>');
     return;
   }
-  final scriptsPath = args[0];
-  final data = Data.load(scriptsPath);
+  final data = Data.load(args[0]);
 
   print('Parsed ${data.recipes.length} recipes.');
   print('Parsed ${data.loot.groups.length} loot groups '
@@ -36,6 +34,23 @@ void main(List<String> args) {
 
   // Print all recipes which produce material.iron_ingot.
   findLoot(data, 'material.iron_ingot');
+
+  printResearchTree(data);
+}
+
+void printResearchTree(Data data) {
+  // List with columns:
+  print("Technology	Prerequisites	Costs	Unlocks");
+  for (final technology in data.technologies.technologies) {
+    final name = technology.name;
+    final prerequisites =
+        technology.dependencies.map((dep) => dep.name).join(', ');
+    final costs = technology.inputs.entries
+        .map((entry) => '${entry.value} ${entry.key.name}')
+        .join(', ');
+    final unlocks = technology.recipes.join(', ');
+    print('$name\t$prerequisites\t$costs\t$unlocks');
+  }
 }
 
 void writeAsYaml(String path, dynamic json) {

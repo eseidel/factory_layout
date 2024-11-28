@@ -1,15 +1,38 @@
+import '../models/material.dart';
 import 'parser.dart';
 
+class TechnologyID {
+  String name;
+
+  TechnologyID(this.name);
+
+  factory TechnologyID.fromString(String fullname) {
+    final parts = fullname.split('.');
+    if (parts.length != 2) {
+      throw ArgumentError('Invalid TechnologyID: $fullname');
+    }
+    if (parts[0] != 'TechnologyID') {
+      throw ArgumentError('Invalid TechnologyID: $fullname');
+    }
+    return TechnologyID(parts[1]);
+  }
+
+  @override
+  String toString() {
+    return 'TechnologyID.$name';
+  }
+}
+
 class Technology {
-  final String id;
+  final TechnologyID id;
   final String name;
   final String icon;
   final String location;
   final Duration time;
-  final Map<String, int> inputs;
+  final Map<Material, int> inputs;
   final List<String> recipes;
   final List<String> hiddenRecipes;
-  final List<String> dependencies;
+  final List<TechnologyID> dependencies;
 
   Technology({
     required this.id,
@@ -25,15 +48,17 @@ class Technology {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'id': id.name,
       'name': name,
       'icon': icon,
       'location': location,
       'time': time.inMilliseconds,
-      'inputs': inputs,
+      'inputs': {
+        for (final entry in inputs.entries) entry.key.toString(): entry.value,
+      },
       'recipes': recipes,
       'hiddenRecipes': hiddenRecipes,
-      'dependencies': dependencies,
+      'dependencies': dependencies.map((dep) => dep.name).toList(),
     };
   }
 }
@@ -83,7 +108,7 @@ class TechnologiesParser extends Parser {
     // Materials is an array of strings.
     final materials = (args[6] as TableConstructorExp)
         .valExps
-        .map((exp) => (exp as StringExp).str)
+        .map((exp) => Material.fromString((exp as StringExp).str))
         .toList();
     final recipes = (args[7] as TableConstructorExp)
         .valExps
@@ -95,14 +120,15 @@ class TechnologiesParser extends Parser {
         .toList();
     // example:
     // __TS__New(Set, {TechnologyID.Farming, TechnologyID.Obsidian})
-    final dependencies =
-        ((args[9] as FuncCallExp).args[1] as TableConstructorExp)
-            .valExps
-            .map((exp) => tableAccessToString(exp as TableAccessExp))
-            .toList();
+    final dependencies = ((args[9] as FuncCallExp).args[1]
+            as TableConstructorExp)
+        .valExps
+        .map((exp) =>
+            TechnologyID.fromString(tableAccessToString(exp as TableAccessExp)))
+        .toList();
 
     return Technology(
-      id: id,
+      id: TechnologyID.fromString(id),
       name: name,
       icon: icon,
       location: location,
