@@ -34,12 +34,20 @@ void main(List<String> args) {
   print('Parsed ${lootSystem.groups.length} loot groups '
       'and ${lootSystem.batches.length} loot batches.');
 
+  final technologySystem =
+      TechnologiesParser().parse(readLuaFile('technologies.lua'));
+  print('Parsed ${technologySystem.technologies.length} technologies.');
+
   // Generate the yaml files with the data.
   final content = {
     'recipes': recipes.map((recipe) => recipe.toJson()).toList(),
     'loot': lootSystem.toJson(),
   };
-  writeAsYaml('content.yaml', content);
+  final outDir = Directory('out');
+  if (!outDir.existsSync()) {
+    outDir.createSync();
+  }
+  writeAsYaml('out/content.yaml', content);
 
   // Print all recipes which produce material.iron_ingot.
   findLoot(recipes, lootSystem, 'material.iron_ingot');

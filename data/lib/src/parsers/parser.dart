@@ -35,4 +35,24 @@ class Parser {
   Block parseLua(String content) {
     return lua_dardo.Parser.parse(content, "main");
   }
+
+  Duration parseDuration(Exp exp) {
+    if (exp is! FuncCallExp) {
+      fail(exp, 'Invalid duration');
+    }
+    final name = (exp.prefixExp as NameExp).name;
+    if (name != 'seconds') {
+      fail(exp, 'Invalid duration');
+    }
+    final arg = exp.args.first;
+    final int milliseconds;
+    if (arg is IntegerExp) {
+      milliseconds = arg.val * 1000;
+    } else if (arg is FloatExp) {
+      milliseconds = (arg.val * 1000).toInt();
+    } else {
+      fail(exp, 'Invalid duration');
+    }
+    return Duration(milliseconds: milliseconds);
+  }
 }

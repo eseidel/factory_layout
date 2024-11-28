@@ -111,26 +111,6 @@ class RecipeParser extends Parser {
     fail(exp, 'Invalid CraftSite');
   }
 
-  Duration _parseDuration(Exp exp) {
-    if (exp is! FuncCallExp) {
-      fail(exp, 'Invalid duration');
-    }
-    final name = (exp.prefixExp as NameExp).name;
-    if (name != 'seconds') {
-      fail(exp, 'Invalid duration');
-    }
-    final arg = exp.args.first;
-    final int milliseconds;
-    if (arg is IntegerExp) {
-      milliseconds = arg.val * 1000;
-    } else if (arg is FloatExp) {
-      milliseconds = (arg.val * 1000).toInt();
-    } else {
-      fail(exp, 'Invalid duration');
-    }
-    return Duration(milliseconds: milliseconds);
-  }
-
   (Item, int) _parseItemCount(Exp exp) {
     // Can be either:
     //  Item.create("material.mineral", 5),
@@ -224,7 +204,7 @@ class RecipeParser extends Parser {
     final name = (inner.args[1] as StringExp).str;
     final inputs = _parseItemCounts(inner.args[2]);
     final outputs = _parseItemCounts(inner.args[3]);
-    final time = _parseDuration(inner.args[4]);
+    final time = parseDuration(inner.args[4]);
     final sites = _parseCraftSites(inner.args[5]);
     final tab = _parseCraftTab(inner.args[6]);
     final id = (inner.args[7] as IntegerExp).val.toInt();
