@@ -35,4 +35,38 @@ void main(List<String> args) {
       'and ${lootSystem.batches.length} loot batches.');
 
   // Generate the yaml files with the data.
+
+  // Print all recipes which produce material.iron_ingot.
+  findLoot(recipes, lootSystem, 'material.iron_ingot');
+}
+
+void findLoot(List<Recipe> recipes, LootSystem lootSystem, String desired,
+    {Set<LootOrigin> allowedOrigins = const {
+      LootOrigin.husbandry,
+      LootOrigin.farming
+    }}) {
+  for (final recipe in recipes) {
+    if (recipe.outputs.keys.any((output) => output.name == desired)) {
+      print(recipe.name);
+    }
+  }
+
+  // Print any loot groups which produce material.iron_ingot.
+  // for (final entry in lootSystem.groups.entries) {
+  //   final name = entry.key;
+  //   final group = entry.value;
+  //   if (group.entries.any((entry) => entry.item.name == desired)) {
+  //     print(name);
+  //   }
+  // }
+
+  // Print any loot batches which produce material.iron_ingot.
+  for (final entry in lootSystem.batches.entries) {
+    final batch = entry.value;
+    if (allowedOrigins.contains(batch.origin) &&
+        batch.listings.any((listing) => listing.groups.any((group) =>
+            group.entries.any((entry) => entry.item.name == desired)))) {
+      print(batch.name);
+    }
+  }
 }

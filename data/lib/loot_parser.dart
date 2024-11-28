@@ -37,9 +37,7 @@ class DropAmount {
   DropAmount(this.chance, this.count);
 }
 
-class LootGroupOrItem {}
-
-class LootItem extends LootGroupOrItem {
+class LootItem {
   final String name;
   final QuantityWeights quantityWeights;
   final bool isBonus;
@@ -47,7 +45,7 @@ class LootItem extends LootGroupOrItem {
   LootItem({
     required this.name,
     required this.quantityWeights,
-    required this.isBonus,
+    this.isBonus = false,
   });
 }
 
@@ -60,10 +58,13 @@ class LootGroupEntry {
 
 // Loot groups are a set of items which may all drop at once.
 // Each entry has an independent chance to drop.
-class LootGroup extends LootGroupOrItem {
+class LootGroup {
   final List<LootGroupEntry> entries;
 
   LootGroup(this.entries);
+
+  LootGroup.single(LootItem item, {int chance = 100})
+      : entries = [LootGroupEntry(item, chance)];
 }
 
 enum LootOrigin {
@@ -93,20 +94,19 @@ enum LootOrigin {
 }
 
 class LootListing {
-  // Lua holds a list of LootItems or LootGroups.
-  List<LootGroupOrItem> items = [];
+  List<LootGroup> groups = [];
 
   LootListing.item({
     required String name,
     required int count,
     required bool isBonus,
     required int emptyChance,
-  }) : items = [
-          LootItem(
+  }) : groups = [
+          LootGroup.single(LootItem(
               name: name,
               quantityWeights:
                   QuantityWeights.single(count, emptyChance: emptyChance),
-              isBonus: isBonus)
+              isBonus: isBonus))
         ];
 
   LootListing.entry({
@@ -119,18 +119,18 @@ class LootListing {
     required String group,
     required QuantityWeights quantityWeights,
     required int emptyChance,
-  }) : items = [system.group(group)];
+  }) : groups = [system.group(group)];
 
   LootListing.fluid({
     required String name,
     required int count,
     required int emptyChance,
-  }) : items = [
-          LootItem(
+  }) : groups = [
+          LootGroup.single(LootItem(
               name: name,
               quantityWeights:
                   QuantityWeights.single(count, emptyChance: emptyChance),
-              isBonus: false)
+              isBonus: false))
         ];
 }
 
