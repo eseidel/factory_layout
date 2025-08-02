@@ -3,6 +3,7 @@ version: '0.2'
 ignorePaths:
   - "**/build/**"
   - "**/macos/**"
+  - "data/out/**"
 words:
   - Seidel
   - Roguelike
@@ -23,3 +24,4 @@ words:
   - vsync
   - lua_dardo
   - elementalizer
+  - Factorio
