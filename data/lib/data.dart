@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'package:file/file.dart';
+import 'package:file/local.dart';
 
 import 'src/models/loot.dart';
 import 'src/parsers/loot_parser.dart';
@@ -18,14 +19,13 @@ class Data {
     required this.technologies,
   });
 
-  static Data load(String scriptsPath) {
-    final directory = Directory(scriptsPath);
-    if (!directory.existsSync()) {
-      throw ArgumentError('Directory does not exist: $scriptsPath');
+  static Data fromScriptsDir(Directory scriptsDir) {
+    if (!scriptsDir.existsSync()) {
+      throw ArgumentError('Directory does not exist: $scriptsDir');
     }
 
     String readLuaFile(String path) {
-      final file = File('$scriptsPath/$path');
+      final file = scriptsDir.childFile(path);
       if (!file.existsSync()) {
         throw ArgumentError('File does not exist: $path');
       }
@@ -43,4 +43,11 @@ class Data {
       technologies: technologies,
     );
   }
+}
+
+Data defaultData() {
+  final fs = LocalFileSystem();
+  // This should read from compiled yaml instead.
+  final dataPath = fs.directory('../../auto_forge_data/scripts');
+  return Data.fromScriptsDir(dataPath);
 }
